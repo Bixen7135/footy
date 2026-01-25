@@ -4,7 +4,8 @@ from contextlib import asynccontextmanager
 
 from app.core.config import settings
 from app.core.redis import RedisManager
-from app.api.v1 import health, products, categories, cart, auth, orders, users, wishlist
+from app.api.v1 import health, products, categories, cart, auth, orders, users, wishlist, events
+from app.api.v1.admin import router as admin_router
 
 
 @asynccontextmanager
@@ -44,6 +45,8 @@ app.include_router(auth.router, prefix=settings.api_v1_prefix)
 app.include_router(orders.router, prefix=settings.api_v1_prefix)
 app.include_router(users.router, prefix=settings.api_v1_prefix)
 app.include_router(wishlist.router, prefix=settings.api_v1_prefix)
+app.include_router(events.router, prefix=settings.api_v1_prefix)
+app.include_router(admin_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/")

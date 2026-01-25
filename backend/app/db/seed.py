@@ -5,6 +5,7 @@ from decimal import Decimal
 from passlib.context import CryptContext
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.db.base import async_session_maker
 from app.models import (
@@ -24,7 +25,6 @@ CATEGORIES = [
     {"name": "Sneakers", "slug": "sneakers", "description": "Casual and athletic sneakers"},
     {"name": "Running", "slug": "running", "description": "Performance running shoes"},
     {"name": "Boots", "slug": "boots", "description": "Stylish boots for all occasions"},
-    {"name": "Sandals", "slug": "sandals", "description": "Comfortable summer sandals"},
     {"name": "Formal", "slug": "formal", "description": "Elegant formal footwear"},
 ]
 
@@ -70,18 +70,6 @@ PRODUCTS = [
         "gender": "men",
         "category_slug": "boots",
         "is_featured": True,
-    },
-    {
-        "name": "Birkenstock Arizona",
-        "slug": "birkenstock-arizona",
-        "description": "Legendary comfort with contoured cork-latex footbed.",
-        "price": Decimal("99.99"),
-        "images": ["/images/products/birkenstock-arizona-1.jpg"],
-        "brand": "Birkenstock",
-        "material": "Leather",
-        "color": "Brown",
-        "gender": "unisex",
-        "category_slug": "sandals",
     },
     {
         "name": "Cole Haan Oxford",
@@ -274,6 +262,11 @@ async def seed_database():
 
     async with async_session_maker() as session:
         try:
+            existing_user = await session.scalar(select(User.id).limit(1))
+            if existing_user:
+                print("Seed data already exists, skipping.")
+                return
+
             # Seed in order
             print("Seeding users...")
             users = await seed_users(session)

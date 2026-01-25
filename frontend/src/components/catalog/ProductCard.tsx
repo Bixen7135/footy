@@ -31,12 +31,26 @@ export function ProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const discount = product.compare_at_price
-    ? Math.round(((product.compare_at_price - product.price) / product.compare_at_price) * 100)
-    : 0;
+  const images = (product.images || []).filter(
+    (url) => typeof url === 'string' && url.startsWith('http')
+  );
+  const primaryImage = images[0] || '';
+  const hoverImage = images[1] || primaryImage;
+  const hasImage = Boolean(primaryImage) && !imageError;
 
-  const primaryImage = product.images?.[0] || '/images/placeholder-product.jpg';
-  const hoverImage = product.images?.[1] || primaryImage;
+  const price = Number(product.price);
+  const comparePrice =
+    product.compare_at_price === null || product.compare_at_price === undefined
+      ? null
+      : Number(product.compare_at_price);
+  const hasComparePrice = Number.isFinite(comparePrice) && (comparePrice as number) > 0;
+  const discount =
+    hasComparePrice && Number.isFinite(price)
+      ? Math.round((((comparePrice as number) - price) / (comparePrice as number)) * 100)
+      : 0;
+
+  const formatPrice = (value: number | null) =>
+    value === null || !Number.isFinite(value) ? '—' : value.toFixed(2);
 
   return (
     <Card
@@ -114,22 +128,41 @@ export function ProductCard({
       {/* Product image */}
       <Link href={`/product/${product.slug}`} style={{ textDecoration: 'none' }}>
         <Box sx={{ position: 'relative', paddingTop: '100%', overflow: 'hidden' }}>
-          <CardMedia
-            component="img"
-            image={imageError ? '/images/placeholder-product.jpg' : (isHovered ? hoverImage : primaryImage)}
-            alt={product.name}
-            onError={() => setImageError(true)}
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              transition: 'transform 0.3s ease-in-out',
-              ...(isHovered && { transform: 'scale(1.05)' }),
-            }}
-          />
+          {hasImage ? (
+            <CardMedia
+              component="img"
+              image={isHovered ? hoverImage : primaryImage}
+              alt={product.name}
+              onError={() => setImageError(true)}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transition: 'transform 0.3s ease-in-out',
+                ...(isHovered && { transform: 'scale(1.05)' }),
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                bgcolor: 'grey.100',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary',
+                fontWeight: 600,
+                textAlign: 'center',
+                px: 2,
+              }}
+            >
+              {product.brand || product.name}
+            </Box>
+          )}
         </Box>
       </Link>
 
@@ -166,16 +199,16 @@ export function ProductCard({
         {/* Price */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
           <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
-            ${product.price.toFixed(2)}
+            ${formatPrice(price)}
           </Typography>
-          {product.compare_at_price && (
+          {hasComparePrice && (
             <Typography
               variant="body2"
               component="span"
               color="text.secondary"
               sx={{ textDecoration: 'line-through' }}
             >
-              ${product.compare_at_price.toFixed(2)}
+              ${formatPrice(comparePrice as number)}
             </Typography>
           )}
         </Box>

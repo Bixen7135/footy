@@ -8,7 +8,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import get_db
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.services.auth_service import AuthService
 
 # Database session dependency
@@ -59,6 +59,19 @@ async def get_current_user_optional(
         return None
 
 
+async def get_admin_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """
+    Get current user and verify they have admin role.
+    Raises 403 if user is not an admin.
+    """
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
+
+
 # Type aliases for dependencies
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentUserOptional = Annotated[Optional[User], Depends(get_current_user_optional)]
+AdminUser = Annotated[User, Depends(get_admin_user)]

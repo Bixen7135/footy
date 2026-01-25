@@ -45,7 +45,12 @@ export function CartItem({
     }
   };
 
-  const productImage = item.product?.images?.[0] || '/images/placeholder-product.jpg';
+  const productImage = (item.product?.images || []).find(
+    (url) => typeof url === 'string' && url.startsWith('http')
+  );
+  const unitPrice = Number(item.unit_price);
+  const subtotal = Number(item.subtotal);
+  const formatPrice = (value: number) => (Number.isFinite(value) ? value.toFixed(2) : '—');
 
   return (
     <Card
@@ -59,18 +64,38 @@ export function CartItem({
     >
       {/* Product Image */}
       <Link href={`/product/${item.product?.slug || item.product_id}`}>
-        <CardMedia
-          component="img"
-          image={productImage}
-          alt={item.product?.name || 'Product'}
-          sx={{
-            width: 120,
-            height: 120,
-            objectFit: 'cover',
-            borderRadius: 1,
-            cursor: 'pointer',
-          }}
-        />
+        {productImage ? (
+          <CardMedia
+            component="img"
+            image={productImage}
+            alt={item.product?.name || 'Product'}
+            sx={{
+              width: 120,
+              height: 120,
+              objectFit: 'cover',
+              borderRadius: 1,
+              cursor: 'pointer',
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
+              width: 120,
+              height: 120,
+              borderRadius: 1,
+              bgcolor: 'grey.100',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'text.secondary',
+              fontWeight: 600,
+              textAlign: 'center',
+              px: 1,
+            }}
+          >
+            {item.product?.brand || item.product?.name || 'Product'}
+          </Box>
+        )}
       </Link>
 
       {/* Product Details */}
@@ -130,11 +155,11 @@ export function CartItem({
           {/* Price */}
           <Box sx={{ textAlign: 'right' }}>
             <Typography variant="subtitle1" fontWeight={600}>
-              ${item.subtotal.toFixed(2)}
+              ${formatPrice(subtotal)}
             </Typography>
             {item.quantity > 1 && (
               <Typography variant="caption" color="text.secondary">
-                ${item.unit_price.toFixed(2)} each
+                ${formatPrice(unitPrice)} each
               </Typography>
             )}
           </Box>

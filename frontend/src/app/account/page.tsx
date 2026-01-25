@@ -7,12 +7,12 @@ import {
   Typography,
   Box,
   Paper,
-  Grid2 as Grid,
   Button,
   TextField,
   Alert,
   CircularProgress,
 } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';

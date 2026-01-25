@@ -9,9 +9,7 @@ import {
   IconButton,
   Divider,
 } from '@mui/material';
-import FacebookIcon from '@mui/icons-material/Facebook';
 import InstagramIcon from '@mui/icons-material/Instagram';
-import TwitterIcon from '@mui/icons-material/Twitter';
 
 const FOOTER_LINKS = {
   shop: [
@@ -19,7 +17,6 @@ const FOOTER_LINKS = {
     { label: 'Sneakers', href: '/catalog?category=sneakers' },
     { label: 'Running', href: '/catalog?category=running' },
     { label: 'Boots', href: '/catalog?category=boots' },
-    { label: 'Sandals', href: '/catalog?category=sandals' },
   ],
   help: [
     { label: 'Contact Us', href: '/contact' },
@@ -31,8 +28,6 @@ const FOOTER_LINKS = {
   company: [
     { label: 'About Us', href: '/about' },
     { label: 'Careers', href: '/careers' },
-    { label: 'Press', href: '/press' },
-    { label: 'Blog', href: '/blog' },
   ],
 };
 
@@ -66,23 +61,9 @@ export function Footer() {
               <IconButton
                 size="small"
                 sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
-                aria-label="Facebook"
-              >
-                <FacebookIcon />
-              </IconButton>
-              <IconButton
-                size="small"
-                sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
                 aria-label="Instagram"
               >
                 <InstagramIcon />
-              </IconButton>
-              <IconButton
-                size="small"
-                sx={{ color: 'grey.400', '&:hover': { color: 'white' } }}
-                aria-label="Twitter"
-              >
-                <TwitterIcon />
               </IconButton>
             </Box>
           </Grid>

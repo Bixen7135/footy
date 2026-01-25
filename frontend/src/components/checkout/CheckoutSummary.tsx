@@ -77,14 +77,34 @@ export function CheckoutSummary({
                     flexShrink: 0,
                   }}
                 >
-                  {item.product.images[0] && (
+                  {item.product.images.find((url) => typeof url === 'string' && url.startsWith('http')) ? (
                     <Image
-                      src={item.product.images[0]}
+                      src={
+                        item.product.images.find(
+                          (url) => typeof url === 'string' && url.startsWith('http')
+                        ) as string
+                      }
                       alt={item.product.name}
                       width={60}
                       height={60}
                       style={{ objectFit: 'cover' }}
                     />
+                  ) : (
+                    <Box
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'text.secondary',
+                        fontWeight: 600,
+                        textAlign: 'center',
+                        px: 1,
+                      }}
+                    >
+                      {item.product.brand || item.product.name}
+                    </Box>
                   )}
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>

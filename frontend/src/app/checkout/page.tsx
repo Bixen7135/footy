@@ -7,7 +7,6 @@ import {
   Container,
   Box,
   Typography,
-  Grid2 as Grid,
   Stepper,
   Step,
   StepLabel,
@@ -15,6 +14,7 @@ import {
   Button,
   Alert,
 } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import { ProtectedRoute } from '@/components/auth';
 import { ShippingForm, CheckoutSummary, ReviewStep } from '@/components/checkout';

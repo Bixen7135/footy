@@ -11,10 +11,10 @@ import {
   Paper,
   Button,
   Divider,
-  Grid2 as Grid,
   CircularProgress,
   Alert,
 } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import { ProtectedRoute } from '@/components/auth';
@@ -163,7 +163,7 @@ function ConfirmationContent() {
                   flexShrink: 0,
                 }}
               >
-                {item.product_image && (
+                {item.product_image && item.product_image.startsWith('http') ? (
                   <Image
                     src={item.product_image}
                     alt={item.product_name}
@@ -171,6 +171,22 @@ function ConfirmationContent() {
                     height={60}
                     style={{ objectFit: 'cover' }}
                   />
+                ) : (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'text.secondary',
+                      fontWeight: 600,
+                      textAlign: 'center',
+                      px: 1,
+                    }}
+                  >
+                    {item.product_name}
+                  </Box>
                 )}
               </Box>
               <Box sx={{ flex: 1 }}>

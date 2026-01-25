@@ -11,7 +11,6 @@ import {
   Paper,
   Button,
   Divider,
-  Grid2 as Grid,
   Chip,
   CircularProgress,
   Alert,
@@ -19,6 +18,7 @@ import {
   Step,
   StepLabel,
 } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
@@ -216,7 +216,7 @@ function OrderDetailContent() {
                       flexShrink: 0,
                     }}
                   >
-                    {item.product_image && (
+                    {item.product_image && item.product_image.startsWith('http') ? (
                       <Image
                         src={item.product_image}
                         alt={item.product_name}
@@ -224,6 +224,22 @@ function OrderDetailContent() {
                         height={80}
                         style={{ objectFit: 'cover' }}
                       />
+                    ) : (
+                      <Box
+                        sx={{
+                          width: '100%',
+                          height: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'text.secondary',
+                          fontWeight: 600,
+                          textAlign: 'center',
+                          px: 1,
+                        }}
+                      >
+                        {item.product_name}
+                      </Box>
                     )}
                   </Box>
                   <Box sx={{ flex: 1 }}>

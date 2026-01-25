@@ -7,10 +7,10 @@ import {
   Box,
   TextField,
   Button,
-  Grid2 as Grid,
   Typography,
   MenuItem,
 } from '@mui/material';
+import Grid from '@mui/material/Unstable_Grid2';
 import type { ShippingAddress } from '@/types';
 
 // US states for dropdown

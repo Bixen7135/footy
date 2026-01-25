@@ -69,11 +69,19 @@ export function ProductDetail({
     );
   }
 
-  const discount = product.compare_at_price
-    ? Math.round(
-        ((product.compare_at_price - product.price) / product.compare_at_price) * 100
-      )
-    : 0;
+  const price = Number(product.price);
+  const comparePrice =
+    product.compare_at_price === null || product.compare_at_price === undefined
+      ? null
+      : Number(product.compare_at_price);
+  const hasComparePrice = Number.isFinite(comparePrice) && (comparePrice as number) > 0;
+  const discount =
+    hasComparePrice && Number.isFinite(price)
+      ? Math.round((((comparePrice as number) - price) / (comparePrice as number)) * 100)
+      : 0;
+
+  const formatPrice = (value: number | null) =>
+    value === null || !Number.isFinite(value) ? '—' : value.toFixed(2);
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
@@ -112,9 +120,10 @@ export function ProductDetail({
     }
   };
 
-  const images = product.images?.length > 0
-    ? product.images
-    : ['/images/placeholder-product.jpg'];
+  const images = (product.images || []).filter(
+    (url) => typeof url === 'string' && url.startsWith('http')
+  );
+  const hasImages = images.length > 0;
 
   return (
     <Box>
@@ -153,19 +162,37 @@ export function ProductDetail({
                 bgcolor: 'grey.100',
               }}
             >
-              <Box
-                component="img"
-                src={images[mainImage]}
-                alt={product.name}
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
-              />
+              {hasImages ? (
+                <Box
+                  component="img"
+                  src={images[mainImage]}
+                  alt={product.name}
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+              ) : (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    px: 2,
+                  }}
+                >
+                  {product.brand || product.name}
+                </Box>
+              )}
               {/* Badges */}
               <Box sx={{ position: 'absolute', top: 16, left: 16, display: 'flex', gap: 1 }}>
                 {discount > 0 && (
@@ -233,15 +260,15 @@ export function ProductDetail({
           {/* Price */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
             <Typography variant="h4" color="primary" fontWeight={700}>
-              ${product.price.toFixed(2)}
+              ${formatPrice(price)}
             </Typography>
-            {product.compare_at_price && (
+            {hasComparePrice && (
               <Typography
                 variant="h6"
                 color="text.secondary"
                 sx={{ textDecoration: 'line-through' }}
               >
-                ${product.compare_at_price.toFixed(2)}
+                ${formatPrice(comparePrice as number)}
               </Typography>
             )}
             {discount > 0 && (

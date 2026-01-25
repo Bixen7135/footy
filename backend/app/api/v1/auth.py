@@ -14,6 +14,7 @@ from app.schemas.user import (
 )
 from app.services.auth_service import AuthService
 from app.services.cart_service import CartService
+from app.services.event_service import EventService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -31,6 +32,11 @@ async def get_cart_service(
     return CartService(db, redis_client)
 
 
+async def get_event_service(db: DbSession) -> EventService:
+    """Dependency for event service."""
+    return EventService(db)
+
+
 class AuthResponse:
     """Response model combining user and tokens."""
     pass
@@ -43,6 +49,7 @@ async def register(
     response: Response,
     auth_service: AuthService = Depends(get_auth_service),
     cart_service: CartService = Depends(get_cart_service),
+    event_service: EventService = Depends(get_event_service),
 ):
     """
     Register a new user.
@@ -54,15 +61,21 @@ async def register(
 
     Returns user data and JWT tokens.
     Cart items are preserved and linked to the new user.
+    Anonymous clickstream events are linked to the user.
     """
     try:
         user, tokens = await auth_service.register(user_data)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Merge cart if session exists
+    # Get/create session
     session_id = get_or_create_session_id(request, response)
+
+    # Merge cart
     await cart_service.merge_carts(session_id, user.id)
+
+    # Link anonymous events to user (identity linking)
+    await event_service.link_session_to_user(session_id, user.id)
 
     return {
         "user": UserResponse(
@@ -87,6 +100,7 @@ async def login(
     response: Response,
     auth_service: AuthService = Depends(get_auth_service),
     cart_service: CartService = Depends(get_cart_service),
+    event_service: EventService = Depends(get_event_service),
 ):
     """
     Authenticate a user and return tokens.
@@ -96,15 +110,21 @@ async def login(
 
     Returns user data and JWT tokens.
     Cart items from anonymous session are merged with user's cart.
+    Anonymous clickstream events are linked to the user.
     """
     try:
         user, tokens = await auth_service.login(credentials)
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
 
-    # Merge cart - link anonymous session cart to user
+    # Get/create session
     session_id = get_or_create_session_id(request, response)
+
+    # Merge cart
     await cart_service.merge_carts(session_id, user.id)
+
+    # Link anonymous events to user (identity linking)
+    await event_service.link_session_to_user(session_id, user.id)
 
     return {
         "user": UserResponse(
