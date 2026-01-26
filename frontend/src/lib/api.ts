@@ -47,6 +47,7 @@ api.interceptors.request.use(
     if (!isPublic && typeof window !== 'undefined') {
       const token = localStorage.getItem(ACCESS_TOKEN_KEY);
       if (token) {
+        config.headers = config.headers ?? {};
         config.headers.Authorization = `Bearer ${token}`;
       }
     }

@@ -1,5 +1,6 @@
 """Seed script for populating the database with test data."""
 import asyncio
+import random
 import uuid
 from decimal import Decimal
 from passlib.context import CryptContext
@@ -11,7 +12,9 @@ from app.db.base import async_session_maker
 from app.models import (
     User, UserRole, Category, Product, ProductVariant,
 )
+from app.core.logging import setup_logging, get_logger
 
+logger = get_logger(__name__)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
@@ -25,7 +28,6 @@ CATEGORIES = [
     {"name": "Sneakers", "slug": "sneakers", "description": "Casual and athletic sneakers"},
     {"name": "Running", "slug": "running", "description": "Performance running shoes"},
     {"name": "Boots", "slug": "boots", "description": "Stylish boots for all occasions"},
-    {"name": "Formal", "slug": "formal", "description": "Elegant formal footwear"},
 ]
 
 SIZES = ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46"]
@@ -70,30 +72,6 @@ PRODUCTS = [
         "gender": "men",
         "category_slug": "boots",
         "is_featured": True,
-    },
-    {
-        "name": "Cole Haan Oxford",
-        "slug": "cole-haan-oxford",
-        "description": "Sophisticated Oxford shoes with Grand.OS comfort technology.",
-        "price": Decimal("159.99"),
-        "images": ["/images/products/cole-haan-oxford-1.jpg"],
-        "brand": "Cole Haan",
-        "material": "Leather",
-        "color": "Black",
-        "gender": "men",
-        "category_slug": "formal",
-    },
-    {
-        "name": "New Balance 574",
-        "slug": "new-balance-574",
-        "description": "Classic lifestyle sneaker with ENCAP midsole cushioning.",
-        "price": Decimal("89.99"),
-        "images": ["/images/products/nb-574-1.jpg"],
-        "brand": "New Balance",
-        "material": "Suede/Mesh",
-        "color": "Grey/Navy",
-        "gender": "unisex",
-        "category_slug": "sneakers",
     },
     {
         "name": "Puma RS-X",
@@ -155,19 +133,7 @@ PRODUCTS = [
         "color": "Black/White",
         "gender": "unisex",
         "category_slug": "sneakers",
-    },
-    {
-        "name": "Steve Madden Heels",
-        "slug": "steve-madden-heels",
-        "description": "Elegant stiletto heels for special occasions.",
-        "price": Decimal("89.99"),
-        "images": ["/images/products/steve-madden-heels-1.jpg"],
-        "brand": "Steve Madden",
-        "material": "Faux Leather",
-        "color": "Nude",
-        "gender": "women",
-        "category_slug": "formal",
-    },
+    }
 ]
 
 
@@ -237,7 +203,6 @@ async def seed_products(session: AsyncSession, categories: dict[str, Category]) 
         session.add(product)
 
         # Add size variants with random stock
-        import random
         for size in SIZES:
             # Not all sizes for all products
             if random.random() > 0.3:  # 70% chance to have this size
@@ -258,34 +223,35 @@ async def seed_products(session: AsyncSession, categories: dict[str, Category]) 
 
 async def seed_database():
     """Main seeding function."""
-    print("Starting database seeding...")
+    setup_logging(debug=False)
+    logger.info("Starting database seeding")
 
     async with async_session_maker() as session:
         try:
             existing_user = await session.scalar(select(User.id).limit(1))
             if existing_user:
-                print("Seed data already exists, skipping.")
+                logger.info("Seed data already exists, skipping")
                 return
 
             # Seed in order
-            print("Seeding users...")
+            logger.info("Seeding users")
             users = await seed_users(session)
-            print(f"  Created {len(users)} users")
+            logger.info("Users seeded", extra={"count": len(users)})
 
-            print("Seeding categories...")
+            logger.info("Seeding categories")
             categories = await seed_categories(session)
-            print(f"  Created {len(categories)} categories")
+            logger.info("Categories seeded", extra={"count": len(categories)})
 
-            print("Seeding products...")
+            logger.info("Seeding products")
             products = await seed_products(session, categories)
-            print(f"  Created {len(products)} products")
+            logger.info("Products seeded", extra={"count": len(products)})
 
             await session.commit()
-            print("Database seeding completed successfully!")
+            logger.info("Database seeding completed successfully")
 
         except Exception as e:
             await session.rollback()
-            print(f"Error seeding database: {e}")
+            logger.error("Error seeding database", extra={"error": str(e)})
             raise
 
 

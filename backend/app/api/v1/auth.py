@@ -5,6 +5,7 @@ import redis.asyncio as redis
 from app.api.deps import DbSession
 from app.core.session import get_or_create_session_id
 from app.core.redis import get_redis
+from app.core.rate_limit import limiter
 from app.schemas.user import (
     UserCreate,
     UserResponse,
@@ -43,9 +44,10 @@ class AuthResponse:
 
 
 @router.post("/register", response_model=dict)
+@limiter.limit("3/minute")
 async def register(
-    user_data: UserCreate,
     request: Request,
+    user_data: UserCreate,
     response: Response,
     auth_service: AuthService = Depends(get_auth_service),
     cart_service: CartService = Depends(get_cart_service),
@@ -62,6 +64,8 @@ async def register(
     Returns user data and JWT tokens.
     Cart items are preserved and linked to the new user.
     Anonymous clickstream events are linked to the user.
+
+    Rate limit: 3 requests per minute.
     """
     try:
         user, tokens = await auth_service.register(user_data)
@@ -94,9 +98,10 @@ async def register(
 
 
 @router.post("/login", response_model=dict)
+@limiter.limit("5/minute")
 async def login(
-    credentials: LoginRequest,
     request: Request,
+    credentials: LoginRequest,
     response: Response,
     auth_service: AuthService = Depends(get_auth_service),
     cart_service: CartService = Depends(get_cart_service),
@@ -111,6 +116,8 @@ async def login(
     Returns user data and JWT tokens.
     Cart items from anonymous session are merged with user's cart.
     Anonymous clickstream events are linked to the user.
+
+    Rate limit: 5 requests per minute.
     """
     try:
         user, tokens = await auth_service.login(credentials)
@@ -143,7 +150,9 @@ async def login(
 
 
 @router.post("/refresh", response_model=Token)
+@limiter.limit("10/minute")
 async def refresh_token(
+    request: Request,
     refresh_data: RefreshRequest,
     auth_service: AuthService = Depends(get_auth_service),
 ):
@@ -153,6 +162,8 @@ async def refresh_token(
     - **refresh_token**: Valid refresh token
 
     Returns new access and refresh tokens.
+
+    Rate limit: 10 requests per minute.
     """
     try:
         return await auth_service.refresh_tokens(refresh_data.refresh_token)

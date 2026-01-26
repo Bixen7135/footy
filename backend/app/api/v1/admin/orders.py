@@ -30,6 +30,31 @@ class OrderListResponse(BaseModel):
     pages: int
 
 
+def parse_order_status(value: str) -> OrderStatus:
+    """Parse a status filter value into OrderStatus, with alias handling."""
+    normalized = value.strip().lower()
+    if not normalized:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "invalid_status",
+                "message": "Status filter cannot be empty.",
+                "allowed": [status.value for status in OrderStatus],
+            },
+        )
+    for status in OrderStatus:
+        if status.value == normalized or status.name.lower() == normalized:
+            return status
+    raise HTTPException(
+        status_code=400,
+        detail={
+            "error": "invalid_status",
+            "message": f"Unknown status '{value}'.",
+            "allowed": [status.value for status in OrderStatus],
+        },
+    )
+
+
 def order_to_response(order: Order) -> OrderResponse:
     """Convert order model to response."""
     return OrderResponse(
@@ -70,7 +95,7 @@ async def list_orders(
     db: DbSession,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    status: Optional[OrderStatus] = None,
+    status: Optional[str] = None,
     search: Optional[str] = None,
 ):
     """
@@ -79,10 +104,14 @@ async def list_orders(
     - **status**: Filter by order status
     - **search**: Search by order number
     """
+    parsed_status: Optional[OrderStatus] = None
+    if status is not None:
+        parsed_status = parse_order_status(status)
+
     # Count query
     count_query = select(func.count(Order.id))
-    if status:
-        count_query = count_query.where(Order.status == status)
+    if parsed_status:
+        count_query = count_query.where(Order.status == parsed_status)
     if search:
         count_query = count_query.where(Order.order_number.ilike(f"%{search}%"))
 
@@ -100,8 +129,8 @@ async def list_orders(
         .offset(offset)
         .limit(page_size)
     )
-    if status:
-        query = query.where(Order.status == status)
+    if parsed_status:
+        query = query.where(Order.status == parsed_status)
     if search:
         query = query.where(Order.order_number.ilike(f"%{search}%"))
 
@@ -154,6 +183,8 @@ async def update_order_status(
     - shipped -> delivered
     - delivered -> (final state)
     - cancelled -> (final state)
+
+    Raises InvalidStateTransitionError for invalid transitions.
     """
     result = await db.execute(
         select(Order)
@@ -165,26 +196,10 @@ async def update_order_status(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    # Validate status transition
-    current = order.status
-    new = status_update.status
+    # Use domain logic for state transition validation
+    # This will raise InvalidStateTransitionError if transition is invalid
+    order.transition_to(status_update.status)
 
-    valid_transitions = {
-        OrderStatus.PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
-        OrderStatus.CONFIRMED: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
-        OrderStatus.PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
-        OrderStatus.SHIPPED: [OrderStatus.DELIVERED],
-        OrderStatus.DELIVERED: [],  # Final state
-        OrderStatus.CANCELLED: [],  # Final state
-    }
-
-    if new not in valid_transitions.get(current, []):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Cannot transition from {current.value} to {new.value}"
-        )
-
-    order.status = new
     await db.commit()
     await db.refresh(order)
 

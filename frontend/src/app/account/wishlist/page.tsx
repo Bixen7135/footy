@@ -127,7 +127,7 @@ function WishlistContent() {
       ) : (
         <Grid container spacing={3}>
           {wishlist.items.map((item) => (
-            <Grid key={item.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+            <Grid key={item.id} xs={12} sm={6} md={4} lg={3}>
               <Paper
                 elevation={0}
                 sx={{

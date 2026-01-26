@@ -71,7 +71,7 @@ export default function AboutPage() {
           for everyone to find their perfect pair of shoes. We were tired of endless searching
           through countless stores, dealing with poor customer service, and worrying about
           authenticity. So we built something better. Today, we curate the best selection of
-          sneakers, boots, running shoes, and formal footwear from the brands you love,
+          sneakers, boots, and running shoes from the brands you love,
           all in one place with the shopping experience you deserve.
         </Typography>
       </Paper>

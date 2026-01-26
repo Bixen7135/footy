@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -17,7 +17,7 @@ import {
 import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cart';
 
-export default function RegisterPage() {
+function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
@@ -215,5 +215,21 @@ export default function RegisterPage() {
         </Box>
       </Paper>
     </Container>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container maxWidth="sm" sx={{ py: 8 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress />
+          </Box>
+        </Container>
+      }
+    >
+      <RegisterContent />
+    </Suspense>
   );
 }

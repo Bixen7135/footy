@@ -44,7 +44,11 @@ class Order(Base, UUIDMixin, TimestampMixin):
 
     # Status
     status: Mapped[OrderStatus] = mapped_column(
-        SQLEnum(OrderStatus),
+        SQLEnum(
+            OrderStatus,
+            name="orderstatus",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         default=OrderStatus.PENDING,
         nullable=False,
     )
@@ -68,6 +72,28 @@ class Order(Base, UUIDMixin, TimestampMixin):
         back_populates="order",
         cascade="all, delete-orphan",
     )
+
+    def transition_to(self, new_status: OrderStatus) -> None:
+        """
+        Transition the order to a new status.
+
+        Validates the transition according to the order state machine rules.
+
+        Args:
+            new_status: The target status to transition to
+
+        Raises:
+            InvalidStateTransitionError: If the transition is not allowed
+        """
+        from app.domain.order import validate_transition
+        validate_transition(self.status, new_status)
+        self.status = new_status
+
+    @property
+    def is_terminal(self) -> bool:
+        """Check if the order is in a terminal state (cannot transition further)."""
+        from app.domain.order import TERMINAL_STATES
+        return self.status in TERMINAL_STATES
 
 
 class OrderItem(Base, UUIDMixin, TimestampMixin):

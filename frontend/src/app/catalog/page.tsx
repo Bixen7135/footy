@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { Suspense, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Container,
@@ -13,10 +13,16 @@ import {
   useTheme,
   Breadcrumbs,
   Link as MuiLink,
+  CircularProgress,
+  Stack,
+  Button,
+  Chip,
 } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CloseIcon from '@mui/icons-material/Close';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useProducts, useCategories } from '@/lib/queries';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
 import { FilterSidebar } from '@/components/catalog/FilterSidebar';
@@ -24,7 +30,13 @@ import type { ProductFilters } from '@/types';
 
 const FILTER_DRAWER_WIDTH = 280;
 
-export default function CatalogPage() {
+const catalogStats = [
+  { label: 'Active collections', value: '36' },
+  { label: 'New arrivals weekly', value: '120+' },
+  { label: 'Fast shipping', value: '48 hrs' },
+];
+
+function CatalogContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const theme = useTheme();
@@ -32,17 +44,12 @@ export default function CatalogPage() {
 
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Parse filters from URL
   const filters: ProductFilters = {
     category_slug: searchParams.get('category') || undefined,
     brand: searchParams.get('brand') || undefined,
     gender: searchParams.get('gender') || undefined,
-    min_price: searchParams.get('min_price')
-      ? parseFloat(searchParams.get('min_price')!)
-      : undefined,
-    max_price: searchParams.get('max_price')
-      ? parseFloat(searchParams.get('max_price')!)
-      : undefined,
+    min_price: searchParams.get('min_price') ? parseFloat(searchParams.get('min_price')!) : undefined,
+    max_price: searchParams.get('max_price') ? parseFloat(searchParams.get('max_price')!) : undefined,
     sizes: searchParams.get('sizes')?.split(',').filter(Boolean) || undefined,
     in_stock: searchParams.get('in_stock') === 'true' || undefined,
     search: searchParams.get('search') || undefined,
@@ -50,7 +57,6 @@ export default function CatalogPage() {
 
   const page = parseInt(searchParams.get('page') || '1', 10);
 
-  // Fetch data
   const {
     data: products,
     isLoading: productsLoading,
@@ -59,12 +65,8 @@ export default function CatalogPage() {
     refetch: refetchProducts,
   } = useProducts(filters, { page, page_size: 12 });
 
-  const {
-    data: categories,
-    isLoading: categoriesLoading,
-  } = useCategories();
+  const { data: categories, isLoading: categoriesLoading } = useCategories();
 
-  // Update URL with new filters
   const updateFilters = useCallback(
     (newFilters: ProductFilters) => {
       const params = new URLSearchParams();
@@ -78,7 +80,6 @@ export default function CatalogPage() {
       if (newFilters.in_stock) params.set('in_stock', 'true');
       if (newFilters.search) params.set('search', newFilters.search);
 
-      // Reset to page 1 when filters change
       router.push(`/catalog?${params.toString()}`);
     },
     [router]
@@ -97,9 +98,30 @@ export default function CatalogPage() {
     router.push('/catalog');
   }, [router]);
 
-  const selectedCategory = categories?.find(
-    (c) => c.slug === filters.category_slug
-  );
+  const selectedCategory = categories?.find((c) => c.slug === filters.category_slug);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.08,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 22 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.7,
+        ease: [0.22, 1, 0.36, 1],
+      },
+    },
+  };
 
   const filterSidebar = (
     <FilterSidebar
@@ -112,73 +134,43 @@ export default function CatalogPage() {
   );
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-      {/* Breadcrumbs */}
-      <Breadcrumbs sx={{ mb: 3 }}>
-        <MuiLink component={Link} href="/" underline="hover" color="inherit">
-          Home
-        </MuiLink>
-        <Typography color="text.primary">
-          {selectedCategory?.name || 'All Products'}
-        </Typography>
-      </Breadcrumbs>
+    <Box sx={{ bgcolor: 'background.default' }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 4, md: 6 } }}>
+        <Grid container spacing={4}>
+          {!isMobile && (
+            <Grid item md={3} lg={2.5}>
+              <Box
+                sx={{
+                  position: 'sticky',
+                  top: 16,
+                  maxHeight: 'calc(100vh - 32px)',
+                  overflowY: 'auto',
+                  borderRadius: '18px',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: 'background.paper',
+                  p: 2,
+                }}
+              >
+                {filterSidebar}
+              </Box>
+            </Grid>
+          )}
 
-      {/* Page header */}
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 4,
-        }}
-      >
-        <Typography variant="h4" component="h1" fontWeight={700}>
-          {selectedCategory?.name || 'All Products'}
-        </Typography>
-
-        {/* Mobile filter button */}
-        {isMobile && (
-          <IconButton
-            onClick={() => setMobileFilterOpen(true)}
-            sx={{ border: 1, borderColor: 'divider' }}
-          >
-            <FilterListIcon />
-          </IconButton>
-        )}
-      </Box>
-
-      <Grid container spacing={4}>
-        {/* Desktop filter sidebar */}
-        {!isMobile && (
-          <Grid item md={3} lg={2.5}>
-            <Box
-              sx={{
-                position: 'sticky',
-                top: 16,
-                maxHeight: 'calc(100vh - 32px)',
-                overflowY: 'auto',
-              }}
-            >
-              {filterSidebar}
-            </Box>
+          <Grid item xs={12} md={9} lg={9.5}>
+            <ProductGrid
+              products={products}
+              isLoading={productsLoading}
+              isError={productsError}
+              error={productsErrorObj}
+              page={page}
+              onPageChange={handlePageChange}
+              onRetry={() => refetchProducts()}
+            />
           </Grid>
-        )}
-
-        {/* Product grid */}
-        <Grid item xs={12} md={9} lg={9.5}>
-          <ProductGrid
-            products={products}
-            isLoading={productsLoading}
-            isError={productsError}
-            error={productsErrorObj}
-            page={page}
-            onPageChange={handlePageChange}
-            onRetry={() => refetchProducts()}
-          />
         </Grid>
-      </Grid>
+      </Container>
 
-      {/* Mobile filter drawer */}
       <Drawer
         anchor="left"
         open={mobileFilterOpen}
@@ -187,14 +179,7 @@ export default function CatalogPage() {
           sx: { width: FILTER_DRAWER_WIDTH, p: 2 },
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2,
-          }}
-        >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h6" fontWeight={600}>
             Filters
           </Typography>
@@ -202,8 +187,25 @@ export default function CatalogPage() {
             <CloseIcon />
           </IconButton>
         </Box>
+
         {filterSidebar}
       </Drawer>
-    </Container>
+    </Box>
+  );
+}
+
+export default function CatalogPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container maxWidth="xl" sx={{ py: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress />
+          </Box>
+        </Container>
+      }
+    >
+      <CatalogContent />
+    </Suspense>
   );
 }

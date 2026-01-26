@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -11,7 +10,7 @@ import {
   Box,
   Chip,
   IconButton,
-  Tooltip,
+  Button,
 } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -37,6 +36,10 @@ export function ProductCard({
   const primaryImage = images[0] || '';
   const hoverImage = images[1] || primaryImage;
   const hasImage = Boolean(primaryImage) && !imageError;
+  const productHref = `/product/${product.slug}`;
+  const sizes = product.available_sizes ?? [];
+  const visibleSizes = sizes.slice(0, 6);
+  const extraSizes = Math.max(sizes.length - visibleSizes.length, 0);
 
   const price = Number(product.price);
   const comparePrice =
@@ -50,7 +53,7 @@ export function ProductCard({
       : 0;
 
   const formatPrice = (value: number | null) =>
-    value === null || !Number.isFinite(value) ? '—' : value.toFixed(2);
+    value === null || !Number.isFinite(value) ? '--' : value.toFixed(2);
 
   return (
     <Card
@@ -59,9 +62,22 @@ export function ProductCard({
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        transition: 'box-shadow 0.2s ease-in-out',
+        transition: 'transform 200ms ease, box-shadow 200ms ease',
         '&:hover': {
-          boxShadow: 4,
+          boxShadow: 6,
+          transform: 'translateY(-2px)',
+        },
+        '&:focus-within': {
+          boxShadow: 6,
+          transform: 'translateY(-2px)',
+        },
+        '&:hover .product-card-actions, &:focus-within .product-card-actions': {
+          opacity: 1,
+          transform: 'translateY(0)',
+          pointerEvents: 'auto',
+        },
+        '@media (prefers-reduced-motion: reduce)': {
+          transition: 'none',
         },
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -126,7 +142,7 @@ export function ProductCard({
       )}
 
       {/* Product image */}
-      <Link href={`/product/${product.slug}`} style={{ textDecoration: 'none' }}>
+      <Link href={productHref} style={{ textDecoration: 'none' }}>
         <Box sx={{ position: 'relative', paddingTop: '100%', overflow: 'hidden' }}>
           {hasImage ? (
             <CardMedia
@@ -141,8 +157,11 @@ export function ProductCard({
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
-                transition: 'transform 0.3s ease-in-out',
+                transition: 'transform 220ms ease',
                 ...(isHovered && { transform: 'scale(1.05)' }),
+                '@media (prefers-reduced-motion: reduce)': {
+                  transition: 'none',
+                },
               }}
             />
           ) : (
@@ -167,24 +186,14 @@ export function ProductCard({
       </Link>
 
       {/* Product info */}
-      <CardContent sx={{ flexGrow: 1, pt: 2 }}>
-        <Link href={`/product/${product.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-          {product.brand && (
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
-            >
-              {product.brand}
-            </Typography>
-          )}
+      <CardContent sx={{ flexGrow: 1, pt: 2, pb: 2, display: 'flex', flexDirection: 'column' }}>
+        <Link href={productHref} style={{ textDecoration: 'none', color: 'inherit' }}>
           <Typography
             variant="subtitle1"
             component="h3"
             sx={{
-              fontWeight: 500,
+              fontWeight: 600,
               lineHeight: 1.3,
-              mb: 1,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               display: '-webkit-box',
@@ -197,7 +206,7 @@ export function ProductCard({
         </Link>
 
         {/* Price */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
           <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
             ${formatPrice(price)}
           </Typography>
@@ -213,29 +222,72 @@ export function ProductCard({
           )}
         </Box>
 
-        {/* Available sizes */}
-        {product.available_sizes?.length > 0 && (
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-            {product.available_sizes.slice(0, 6).map((size) => (
-              <Chip
-                key={size}
-                label={size}
-                size="small"
-                variant="outlined"
-                sx={{ fontSize: '0.7rem', height: 24 }}
-              />
-            ))}
-            {product.available_sizes.length > 6 && (
-              <Chip
-                label={`+${product.available_sizes.length - 6}`}
-                size="small"
-                variant="outlined"
-                sx={{ fontSize: '0.7rem', height: 24 }}
-              />
-            )}
-          </Box>
+        {product.brand && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ textTransform: 'uppercase', letterSpacing: 0.5, mt: 0.5 }}
+          >
+            {product.brand}
+          </Typography>
         )}
+
+        {/* Sizes + quick add */}
+        <Box sx={{ position: 'relative', mt: 2, minHeight: 64 }}>
+          <Box
+            className="product-card-actions"
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              opacity: 0,
+              transform: 'translateY(8px)',
+              transition: 'opacity 180ms ease, transform 180ms ease',
+              pointerEvents: 'none',
+              '@media (prefers-reduced-motion: reduce)': {
+                transition: 'none',
+                transform: 'none',
+              },
+            }}
+          >
+            {visibleSizes.length > 0 && (
+              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                {visibleSizes.map((size) => (
+                  <Chip
+                    key={size}
+                    label={size}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem', height: 24 }}
+                  />
+                ))}
+                {extraSizes > 0 && (
+                  <Chip
+                    label={`+${extraSizes}`}
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontSize: '0.7rem', height: 24 }}
+                  />
+                )}
+              </Box>
+            )}
+            <Button
+              size="small"
+              variant="contained"
+              color="primary"
+              component={Link}
+              href={productHref}
+              aria-label={`Quick add ${product.name}`}
+              sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+            >
+              Quick Add
+            </Button>
+          </Box>
+        </Box>
       </CardContent>
     </Card>
   );
 }
+

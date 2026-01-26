@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -17,7 +17,7 @@ import {
 import { useAuthStore } from '@/stores/auth';
 import { useCartStore } from '@/stores/cart';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
@@ -146,7 +146,7 @@ export default function LoginPage() {
 
         <Box sx={{ textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link
               href={`/register${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
               style={{ color: 'inherit', fontWeight: 600 }}
@@ -157,5 +157,21 @@ export default function LoginPage() {
         </Box>
       </Paper>
     </Container>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Container maxWidth="sm" sx={{ py: 8 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+            <CircularProgress />
+          </Box>
+        </Container>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

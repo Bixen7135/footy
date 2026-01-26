@@ -1,0 +1,64 @@
+# VCS
+.git/
+.gitignore
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+.next/
+out/
+
+# Python caches/build
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.egg-info/
+.eggs/
+*.egg
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# IDE/editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker overrides
+docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+
+# Misc
+*.bak
+*.tmp
+
+# Project docs and notes
+claude.md
+TECHNICAL_SPECIFICATION.md
+tests.json
+todo.md
+progress.txt
+DOCS/
+.claude/agents/
+.claude/
+.cursor/
+README.md

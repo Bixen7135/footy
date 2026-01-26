@@ -130,7 +130,7 @@ export function ShippingForm({
       </Typography>
 
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12 }}>
+        <Grid xs={12}>
           <Controller
             name="name"
             control={control}
@@ -147,7 +147,7 @@ export function ShippingForm({
           />
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
+        <Grid xs={12}>
           <Controller
             name="line1"
             control={control}
@@ -164,7 +164,7 @@ export function ShippingForm({
           />
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
+        <Grid xs={12}>
           <Controller
             name="line2"
             control={control}
@@ -181,7 +181,7 @@ export function ShippingForm({
           />
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid xs={12} sm={6}>
           <Controller
             name="city"
             control={control}
@@ -198,7 +198,7 @@ export function ShippingForm({
           />
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid xs={12} sm={6}>
           <Controller
             name="state"
             control={control}
@@ -222,7 +222,7 @@ export function ShippingForm({
           />
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid xs={12} sm={6}>
           <Controller
             name="postal_code"
             control={control}
@@ -240,7 +240,7 @@ export function ShippingForm({
           />
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid xs={12} sm={6}>
           <Controller
             name="phone"
             control={control}
@@ -258,7 +258,7 @@ export function ShippingForm({
           />
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
+        <Grid xs={12}>
           <Button
             type="submit"
             variant="contained"

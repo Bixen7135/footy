@@ -82,5 +82,8 @@ class ProductVariant(Base, UUIDMixin, TimestampMixin):
     sku: Mapped[Optional[str]] = mapped_column(String(100), unique=True, nullable=True)
     stock: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
+    # Optimistic locking version for concurrent stock updates
+    version: Mapped[int] = mapped_column(Integer, default=1, nullable=False)
+
     # Relationships
     product: Mapped["Product"] = relationship("Product", back_populates="variants")

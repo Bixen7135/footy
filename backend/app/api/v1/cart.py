@@ -127,3 +127,25 @@ async def clear_cart(
         return
 
     await cart_service.clear_cart(session_id)
+
+
+@router.post("/refresh-prices", response_model=CartResponse)
+async def refresh_cart_prices(
+    request: Request,
+    response: Response,
+    cart_service: CartService = Depends(get_cart_service),
+):
+    """
+    Refresh cart item prices to match current product prices.
+
+    Call this endpoint when:
+    - A PriceChangedError is received during checkout
+    - Before displaying the checkout summary
+    - After returning to the cart after some time
+
+    Returns the cart with all item prices updated to current values.
+    """
+    session_id = get_or_create_session_id(request, response)
+    user_id = None
+
+    return await cart_service.refresh_prices(session_id, user_id)

@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import type { ReactNode, SyntheticEvent } from 'react';
 import {
   Container,
   Typography,
@@ -13,11 +15,12 @@ import {
   TableRow,
   Tabs,
   Tab,
+  Grid,
 } from '@mui/material';
-import { useState } from 'react';
+import { motion } from 'framer-motion';
 
 interface TabPanelProps {
-  children?: React.ReactNode;
+  children?: ReactNode;
   index: number;
   value: number;
 }
@@ -60,137 +63,244 @@ const WOMEN_SIZES = [
   { us: '11', uk: '9', eu: '42', cm: '28' },
 ];
 
+const measurementSteps = [
+  {
+    title: 'Stand on paper',
+    body: 'Place a piece of paper on a hard floor against a wall. Stand on the paper with your heel against the wall.',
+  },
+  {
+    title: 'Mark your foot',
+    body: 'Have someone mark the longest point of your foot (usually the big toe) on the paper.',
+  },
+  {
+    title: 'Measure',
+    body: 'Measure the distance from the wall to the mark in centimeters. This is your foot length.',
+  },
+  {
+    title: 'Find your size',
+    body: 'Use the charts below to find your corresponding shoe size. If between sizes, we recommend sizing up.',
+  },
+];
+
 export default function SizeGuidePage() {
   const [tabValue, setTabValue] = useState(0);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08, delayChildren: 0.12 },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 22 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  };
+
   return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Typography variant="h3" fontWeight={700} gutterBottom>
-          Size Guide
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-          Find your perfect fit with our comprehensive size guide. Sizes may vary between
-          brands, so we recommend measuring your feet for the most accurate fit.
-        </Typography>
+    <Box sx={{ bgcolor: 'background.default' }}>
+      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 5, md: 8 } }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background: (theme) =>
+              theme.palette.mode === 'light'
+                ? 'radial-gradient(circle at 18% 10%, rgba(24, 24, 24, 0.08) 0%, transparent 45%), radial-gradient(circle at 85% 8%, rgba(158, 255, 0, 0.2) 0%, transparent 50%), radial-gradient(circle at 8% 80%, rgba(158, 255, 0, 0.16) 0%, transparent 50%)'
+                : 'radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 45%), radial-gradient(circle at 85% 8%, rgba(158, 255, 0, 0.18) 0%, transparent 50%), radial-gradient(circle at 8% 80%, rgba(158, 255, 0, 0.12) 0%, transparent 50%)',
+            opacity: 0.9,
+          }}
+        />
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          <motion.div variants={containerVariants} initial="hidden" animate="show">
+            <motion.div variants={itemVariants}>
+              <Box sx={{ maxWidth: 720 }}>
+                <Typography
+                  sx={{
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    color: 'text.secondary',
+                    mb: 2,
+                  }}
+                >
+                  Fit studio
+                </Typography>
+                <Typography
+                  component="h1"
+                  sx={{
+                    fontSize: { xs: '2.4rem', sm: '3.2rem', md: '4rem' },
+                    fontWeight: 900,
+                    lineHeight: 0.95,
+                    letterSpacing: '-0.04em',
+                    fontFamily: 'var(--font-satoshi)',
+                    mb: 2,
+                  }}
+                >
+                  Find your perfect fit.
+                </Typography>
+                <Typography sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                  Sizes can vary between brands. Measure precisely and use the charts below to match your
+                  stride.
+                </Typography>
+              </Box>
+            </motion.div>
+          </motion.div>
+        </Container>
       </Box>
 
-      <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, mb: 4, border: 1, borderColor: 'divider' }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>
-          How to Measure Your Feet
-        </Typography>
-        <Box component="ol" sx={{ pl: 3, '& li': { mb: 2, color: 'text.secondary' } }}>
-          <li>
-            <Typography variant="body1">
-              <strong>Stand on paper:</strong> Place a piece of paper on a hard floor against
-              a wall. Stand on the paper with your heel against the wall.
-            </Typography>
-          </li>
-          <li>
-            <Typography variant="body1">
-              <strong>Mark your foot:</strong> Have someone mark the longest point of your
-              foot (usually the big toe) on the paper.
-            </Typography>
-          </li>
-          <li>
-            <Typography variant="body1">
-              <strong>Measure:</strong> Measure the distance from the wall to the mark in
-              centimeters. This is your foot length.
-            </Typography>
-          </li>
-          <li>
-            <Typography variant="body1">
-              <strong>Find your size:</strong> Use the charts below to find your corresponding
-              shoe size. If between sizes, we recommend sizing up.
-            </Typography>
-          </li>
-        </Box>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Tip: Measure your feet at the end of the day when they&apos;re at their largest.
-          Measure both feet, as one may be slightly larger than the other.
-        </Typography>
-      </Paper>
+      <Container maxWidth="lg" sx={{ pb: { xs: 6, md: 10 } }}>
+        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={5}>
+              <motion.div variants={itemVariants}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 3, md: 4 },
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '22px',
+                    bgcolor: 'background.paper',
+                    height: '100%',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: '1.4rem',
+                      fontWeight: 800,
+                      letterSpacing: '-0.02em',
+                      fontFamily: 'var(--font-satoshi)',
+                      mb: 2,
+                    }}
+                  >
+                    Measure your feet
+                  </Typography>
+                  <Box component="ol" sx={{ pl: 3, '& li': { mb: 2, color: 'text.secondary' } }}>
+                    {measurementSteps.map((step) => (
+                      <li key={step.title}>
+                        <Typography variant="body2">
+                          <strong>{step.title}:</strong> {step.body}
+                        </Typography>
+                      </li>
+                    ))}
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    Tip: Measure your feet at the end of the day when they are at their largest. Measure
+                    both feet as one may be slightly larger.
+                  </Typography>
+                </Paper>
+              </motion.div>
+            </Grid>
+            <Grid item xs={12} md={7}>
+              <motion.div variants={itemVariants}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 3, md: 4 },
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '22px',
+                    bgcolor: 'background.paper',
+                  }}
+                >
+                  <Tabs
+                    value={tabValue}
+                    onChange={(_: SyntheticEvent, newValue) => setTabValue(newValue)}
+                    sx={{ borderBottom: 1, borderColor: 'divider' }}
+                  >
+                    <Tab label="Men's sizes" />
+                    <Tab label="Women's sizes" />
+                  </Tabs>
 
-      <Paper elevation={0} sx={{ p: { xs: 3, md: 4 }, border: 1, borderColor: 'divider' }}>
-        <Tabs
-          value={tabValue}
-          onChange={(_, newValue) => setTabValue(newValue)}
-          sx={{ borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab label="Men's Sizes" />
-          <Tab label="Women's Sizes" />
-        </Tabs>
+                  <TabPanel value={tabValue} index={0}>
+                    <TableContainer>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 600 }}>US</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>UK</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>EU</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>CM</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {MEN_SIZES.map((size) => (
+                            <TableRow key={size.us}>
+                              <TableCell>{size.us}</TableCell>
+                              <TableCell>{size.uk}</TableCell>
+                              <TableCell>{size.eu}</TableCell>
+                              <TableCell>{size.cm}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </TabPanel>
 
-        <TabPanel value={tabValue} index={0}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>US</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>UK</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>EU</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>CM</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {MEN_SIZES.map((size) => (
-                  <TableRow key={size.us}>
-                    <TableCell>{size.us}</TableCell>
-                    <TableCell>{size.uk}</TableCell>
-                    <TableCell>{size.eu}</TableCell>
-                    <TableCell>{size.cm}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </TabPanel>
+                  <TabPanel value={tabValue} index={1}>
+                    <TableContainer>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ fontWeight: 600 }}>US</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>UK</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>EU</TableCell>
+                            <TableCell sx={{ fontWeight: 600 }}>CM</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {WOMEN_SIZES.map((size) => (
+                            <TableRow key={size.us}>
+                              <TableCell>{size.us}</TableCell>
+                              <TableCell>{size.uk}</TableCell>
+                              <TableCell>{size.eu}</TableCell>
+                              <TableCell>{size.cm}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </TabPanel>
+                </Paper>
+              </motion.div>
+            </Grid>
+          </Grid>
 
-        <TabPanel value={tabValue} index={1}>
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>US</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>UK</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>EU</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>CM</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {WOMEN_SIZES.map((size) => (
-                  <TableRow key={size.us}>
-                    <TableCell>{size.us}</TableCell>
-                    <TableCell>{size.uk}</TableCell>
-                    <TableCell>{size.eu}</TableCell>
-                    <TableCell>{size.cm}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </TabPanel>
-      </Paper>
-
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          mt: 4,
-          bgcolor: 'grey.50',
-          border: 1,
-          borderColor: 'divider',
-        }}
-      >
-        <Typography variant="h6" fontWeight={600} gutterBottom>
-          Need Help Finding Your Size?
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Our customer support team is happy to help. Contact us at support@footy.com with
-          your foot measurements and the style you&apos;re interested in, and we&apos;ll
-          recommend the best size for you.
-        </Typography>
-      </Paper>
-    </Container>
+          <motion.div variants={itemVariants}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 3, md: 4 },
+                mt: 4,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: '22px',
+                bgcolor: 'background.paper',
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '1.4rem',
+                  fontWeight: 800,
+                  letterSpacing: '-0.02em',
+                  fontFamily: 'var(--font-satoshi)',
+                  mb: 1,
+                }}
+              >
+                Need help finding your size?
+              </Typography>
+              <Typography color="text.secondary">
+                Our customer support team is happy to help. Contact us at support@footy.com with your
+                foot measurements and the style you are interested in, and we will recommend the best
+                size for you.
+              </Typography>
+            </Paper>
+          </motion.div>
+        </motion.div>
+      </Container>
+    </Box>
   );
 }

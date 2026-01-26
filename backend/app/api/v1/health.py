@@ -1,8 +1,16 @@
+"""Health check endpoints."""
 from fastapi import APIRouter
 from pydantic import BaseModel
 from datetime import datetime
+from sqlalchemy import text
 
-router = APIRouter()
+from app.db.base import engine
+from app.core.redis import RedisManager
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
+
+router = APIRouter(tags=["health"])
 
 
 class HealthResponse(BaseModel):
@@ -32,11 +40,31 @@ async def health_check():
 @router.get("/health/detailed", response_model=DetailedHealthResponse)
 async def detailed_health_check():
     """Detailed health check including database and Redis status."""
-    # TODO: Implement actual database and Redis checks in later batches
+    # Check database
+    db_status = "healthy"
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+    except Exception as e:
+        logger.warning("Database health check failed", extra={"error": str(e)})
+        db_status = "unhealthy"
+
+    # Check Redis
+    redis_healthy = await RedisManager.health_check()
+    redis_status = "healthy" if redis_healthy else "unhealthy"
+
+    # Determine overall status
+    if db_status == "healthy" and redis_status == "healthy":
+        overall = "healthy"
+    elif db_status == "unhealthy" and redis_status == "unhealthy":
+        overall = "unhealthy"
+    else:
+        overall = "degraded"
+
     return DetailedHealthResponse(
-        status="healthy",
+        status=overall,
         timestamp=datetime.utcnow().isoformat(),
         version="0.1.0",
-        database="not_configured",
-        redis="not_configured",
+        database=db_status,
+        redis=redis_status,
     )

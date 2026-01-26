@@ -17,7 +17,8 @@ interface CartSummaryProps {
 }
 
 export function CartSummary({ cart, isUpdating = false }: CartSummaryProps) {
-  const subtotal = cart.total;
+  const parsedSubtotal = Number(cart.total);
+  const subtotal = Number.isFinite(parsedSubtotal) ? parsedSubtotal : 0;
   const shipping = subtotal >= 100 ? 0 : 9.99; // Free shipping over $100
   const tax = subtotal * 0.08; // 8% tax estimate
   const total = subtotal + shipping + tax;

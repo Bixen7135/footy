@@ -20,8 +20,8 @@ import {
   Pagination,
 } from '@mui/material';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import { ProtectedRoute } from '@/components/auth';
 import { api } from '@/lib/api';
+import { useAuthStore, initializeAuth, getAccessToken } from '@/stores/auth';
 import type { Order, OrderListResponse, OrderStatus } from '@/types';
 
 const STATUS_COLORS: Record<OrderStatus, 'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'error'> = {
@@ -43,17 +43,30 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 };
 
 function OrdersContent() {
+  const { isAuthenticated } = useAuthStore();
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  useEffect(() => {
+    const init = async () => {
+      await initializeAuth();
+      setIsAuthReady(true);
+    };
+    init();
+  }, []);
+
   const fetchOrders = async (pageNum: number) => {
     setIsLoading(true);
     try {
+      const token = getAccessToken();
       const response = await api.get<OrderListResponse>('/orders', {
         params: { page: pageNum, page_size: 10 },
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        withCredentials: true,
       });
       setOrders(response.data.items);
       setTotalPages(response.data.pages);
@@ -65,8 +78,14 @@ function OrdersContent() {
   };
 
   useEffect(() => {
+    if (!isAuthReady) return;
+    if (!isAuthenticated) {
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
     fetchOrders(page);
-  }, [page]);
+  }, [page, isAuthenticated, isAuthReady]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -83,12 +102,25 @@ function OrdersContent() {
     });
   };
 
-  if (isLoading) {
+  if (!isAuthReady || isLoading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
           <CircularProgress />
         </Box>
+      </Container>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Please log in to view your orders.
+        </Alert>
+        <Button component={Link} href="/login?redirect=%2Faccount%2Forders" variant="contained">
+          Log In
+        </Button>
       </Container>
     );
   }
@@ -207,9 +239,5 @@ function OrdersContent() {
 }
 
 export default function OrdersPage() {
-  return (
-    <ProtectedRoute>
-      <OrdersContent />
-    </ProtectedRoute>
-  );
+  return <OrdersContent />;
 }

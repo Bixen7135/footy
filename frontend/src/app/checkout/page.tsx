@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -39,21 +39,26 @@ function CheckoutContent() {
     resetCheckout,
     clearError,
   } = useCheckoutStore();
+  const stepRef = useRef(step);
 
   // Fetch cart on mount
   useEffect(() => {
     fetchCart();
   }, [fetchCart]);
 
+  useEffect(() => {
+    stepRef.current = step;
+  }, [step]);
+
   // Reset checkout when component unmounts
   useEffect(() => {
     return () => {
       // Only reset if not completed
-      if (step !== 'complete') {
+      if (stepRef.current !== 'complete') {
         resetCheckout();
       }
     };
-  }, []);
+  }, [resetCheckout]);
 
   const stepIndex =
     step === 'shipping' ? 0 : step === 'review' ? 1 : 2;
@@ -132,7 +137,7 @@ function CheckoutContent() {
 
       <Grid container spacing={4}>
         {/* Main content */}
-        <Grid size={{ xs: 12, md: 7 }}>
+        <Grid xs={12} md={7}>
           {step === 'shipping' && (
             <ShippingForm
               onSubmit={handleShippingSubmit}
@@ -153,7 +158,7 @@ function CheckoutContent() {
         </Grid>
 
         {/* Order summary sidebar */}
-        <Grid size={{ xs: 12, md: 5 }}>
+        <Grid xs={12} md={5}>
           <CheckoutSummary
             cart={cart}
             shippingAddress={step === 'review' ? shippingAddress : null}

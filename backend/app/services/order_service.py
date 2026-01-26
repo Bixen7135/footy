@@ -8,13 +8,17 @@ from datetime import datetime
 from typing import Optional
 
 import redis.asyncio as redis
-from sqlalchemy import select, func
+from sqlalchemy import select, func, text
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Order, OrderItem, Product, ProductVariant, User
 from app.models.order import OrderStatus
 from app.schemas.order import OrderCreate, OrderResponse, OrderItemResponse, ShippingAddress
+from app.core.exceptions import PriceChangedError, CartEmptyError
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 
 # Constants
@@ -71,8 +75,12 @@ class OrderService:
             variant_id = UUID(item["variant_id"])
             quantity = item["quantity"]
 
-            # Get variant with lock for update
-            query = select(ProductVariant).where(ProductVariant.id == variant_id)
+            # Get variant with lock for update (prevents concurrent modification)
+            query = (
+                select(ProductVariant)
+                .where(ProductVariant.id == variant_id)
+                .with_for_update()
+            )
             result = await self.db.execute(query)
             variant = result.scalar_one_or_none()
 
@@ -140,104 +148,145 @@ class OrderService:
         # Get cart items
         cart_items = await self._get_cart_items(session_id)
         if not cart_items:
-            raise ValueError("Cart is empty")
+            raise CartEmptyError()
 
-        # Validate and reserve stock
-        success, error_msg, reservations = await self._validate_and_reserve_stock(cart_items)
-        if not success:
-            raise ValueError(error_msg)
-
-        # Calculate totals
-        subtotal = Decimal("0.00")
-        order_items_data = []
-
-        for item in cart_items:
-            product_id = UUID(item["product_id"])
-            variant_id = UUID(item["variant_id"])
-            quantity = item["quantity"]
-            unit_price = Decimal(str(item["unit_price"]))
-
-            # Get product info for snapshot
-            product_query = (
-                select(Product)
-                .where(Product.id == product_id)
-            )
-            product_result = await self.db.execute(product_query)
-            product = product_result.scalar_one_or_none()
-
-            variant_query = select(ProductVariant).where(ProductVariant.id == variant_id)
-            variant_result = await self.db.execute(variant_query)
-            variant = variant_result.scalar_one_or_none()
-
-            if not product or not variant:
-                raise ValueError("Product or variant not found")
-
-            item_subtotal = unit_price * quantity
-            subtotal += item_subtotal
-
-            order_items_data.append({
-                "product_id": product_id,
-                "variant_id": variant_id,
-                "product_name": product.name,
-                "product_image": product.images[0] if product.images else None,
-                "size": variant.size,
-                "quantity": quantity,
-                "unit_price": unit_price,
-            })
-
-        # Calculate shipping (free over threshold)
-        shipping_cost = Decimal("0.00") if subtotal >= SHIPPING_THRESHOLD else SHIPPING_COST
-
-        # Calculate tax
-        tax = (subtotal * TAX_RATE).quantize(Decimal("0.01"))
-
-        # Calculate total
-        total = subtotal + shipping_cost + tax
-
-        # Generate order number
-        order_number = self._generate_order_number()
-
-        # Ensure unique order number
-        while True:
-            check_query = select(Order).where(Order.order_number == order_number)
-            check_result = await self.db.execute(check_query)
-            if not check_result.scalar_one_or_none():
-                break
-            order_number = self._generate_order_number()
-
-        # Create order
-        order = Order(
-            order_number=order_number,
-            idempotency_key=order_data.idempotency_key,
-            user_id=user_id,
-            session_id=session_id,
-            status=OrderStatus.PENDING,
-            subtotal=subtotal,
-            shipping_cost=shipping_cost,
-            tax=tax,
-            total=total,
-            shipping_address=order_data.shipping_address.model_dump(),
-            notes=order_data.notes,
+        # Set SERIALIZABLE isolation level for the order creation transaction
+        # This prevents phantom reads and ensures consistency for stock validation
+        # and order creation
+        await self.db.execute(text("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE"))
+        logger.debug(
+            "Starting order creation transaction",
+            extra={"session_id": session_id, "user_id": str(user_id)},
         )
 
-        self.db.add(order)
-        await self.db.flush()  # Get order ID
+        try:
+            # Validate and reserve stock
+            success, error_msg, reservations = await self._validate_and_reserve_stock(cart_items)
+            if not success:
+                raise ValueError(error_msg)
 
-        # Create order items
-        for item_data in order_items_data:
-            order_item = OrderItem(
-                order_id=order.id,
-                **item_data,
+            # Calculate totals
+            subtotal = Decimal("0.00")
+            order_items_data = []
+
+            for item in cart_items:
+                product_id = UUID(item["product_id"])
+                variant_id = UUID(item["variant_id"])
+                quantity = item["quantity"]
+                unit_price = Decimal(str(item["unit_price"]))
+
+                # Get product info for snapshot
+                product_query = (
+                    select(Product)
+                    .where(Product.id == product_id)
+                )
+                product_result = await self.db.execute(product_query)
+                product = product_result.scalar_one_or_none()
+
+                variant_query = select(ProductVariant).where(ProductVariant.id == variant_id)
+                variant_result = await self.db.execute(variant_query)
+                variant = variant_result.scalar_one_or_none()
+
+                if not product or not variant:
+                    raise ValueError("Product or variant not found")
+
+                # Validate price hasn't changed since item was added to cart
+                current_price = product.price
+                if current_price != unit_price:
+                    raise PriceChangedError(
+                        product_name=product.name,
+                        cart_price=str(unit_price),
+                        current_price=str(current_price),
+                    )
+
+                item_subtotal = unit_price * quantity
+                subtotal += item_subtotal
+
+                order_items_data.append({
+                    "product_id": product_id,
+                    "variant_id": variant_id,
+                    "product_name": product.name,
+                    "product_image": product.images[0] if product.images else None,
+                    "size": variant.size,
+                    "quantity": quantity,
+                    "unit_price": unit_price,
+                })
+
+            # Calculate shipping (free over threshold)
+            shipping_cost = Decimal("0.00") if subtotal >= SHIPPING_THRESHOLD else SHIPPING_COST
+
+            # Calculate tax
+            tax = (subtotal * TAX_RATE).quantize(Decimal("0.01"))
+
+            # Calculate total
+            total = subtotal + shipping_cost + tax
+
+            # Generate order number
+            order_number = self._generate_order_number()
+
+            # Ensure unique order number
+            while True:
+                check_query = select(Order).where(Order.order_number == order_number)
+                check_result = await self.db.execute(check_query)
+                if not check_result.scalar_one_or_none():
+                    break
+                order_number = self._generate_order_number()
+
+            # Create order
+            order = Order(
+                order_number=order_number,
+                idempotency_key=order_data.idempotency_key,
+                user_id=user_id,
+                session_id=session_id,
+                status=OrderStatus.PENDING,
+                subtotal=subtotal,
+                shipping_cost=shipping_cost,
+                tax=tax,
+                total=total,
+                shipping_address=order_data.shipping_address.model_dump(),
+                notes=order_data.notes,
             )
-            self.db.add(order_item)
 
-        # Deduct stock
-        await self._deduct_stock(reservations)
+            self.db.add(order)
+            await self.db.flush()  # Get order ID
 
-        # Commit transaction
-        await self.db.commit()
+            # Create order items
+            for item_data in order_items_data:
+                order_item = OrderItem(
+                    order_id=order.id,
+                    **item_data,
+                )
+                self.db.add(order_item)
 
-        # Clear cart after successful order
+            # Deduct stock
+            await self._deduct_stock(reservations)
+
+            # Commit transaction
+            await self.db.commit()
+            logger.info(
+                "Order created successfully",
+                extra={
+                    "order_id": str(order.id),
+                    "order_number": order_number,
+                    "user_id": str(user_id),
+                    "total": str(total),
+                },
+            )
+
+        except Exception as e:
+            # Rollback transaction on any error
+            await self.db.rollback()
+            logger.error(
+                "Order creation failed, transaction rolled back",
+                extra={
+                    "session_id": session_id,
+                    "user_id": str(user_id),
+                    "error": str(e),
+                },
+            )
+            raise
+
+        # Clear cart after successful order (outside transaction)
         await self._clear_cart(session_id)
 
         # Refresh to get items

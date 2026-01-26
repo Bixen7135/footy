@@ -58,3 +58,4 @@ progress.txt
 DOCS/
 .claude/agents/
 .claude/
+.cursor/

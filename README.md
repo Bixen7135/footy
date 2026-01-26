@@ -8,7 +8,7 @@ Footy is a full-stack e-commerce platform for purchasing footwear. It features a
 
 ## Features
 
-- **Product Catalog**: Browse footwear by category (Sneakers, Running, Boots, Formal)
+- **Product Catalog**: Browse footwear by category (Sneakers, Running, Boots)
 - **Search & Filtering**: Find products by name, brand, size, price, and more
 - **User Accounts**: Registration, login, and profile management
 - **Shopping Cart**: Persistent cart that survives login and page refresh

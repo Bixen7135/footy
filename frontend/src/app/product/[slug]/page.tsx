@@ -1,17 +1,16 @@
 'use client';
 
-import { use, useState } from 'react';
+import { useState } from 'react';
 import { Container, Snackbar, Alert } from '@mui/material';
+import { useParams } from 'next/navigation';
 import { useProductBySlug } from '@/lib/queries';
 import { ProductDetail } from '@/components/catalog/ProductDetail';
 import { useCartStore } from '@/stores/cart';
 
-interface ProductPageProps {
-  params: Promise<{ slug: string }>;
-}
-
-export default function ProductPage({ params }: ProductPageProps) {
-  const { slug } = use(params);
+export default function ProductPage() {
+  const params = useParams<{ slug?: string | string[] }>();
+  const slugParam = params?.slug;
+  const slug = Array.isArray(slugParam) ? slugParam[0] : slugParam ?? '';
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;

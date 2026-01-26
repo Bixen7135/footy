@@ -208,7 +208,7 @@ function ConfirmationContent() {
 
         <Grid container spacing={3}>
           {/* Shipping address */}
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid xs={12} sm={6}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
               <LocalShippingOutlinedIcon
                 sx={{ color: 'text.secondary', mt: 0.5 }}
@@ -236,7 +236,7 @@ function ConfirmationContent() {
           </Grid>
 
           {/* Order summary */}
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid xs={12} sm={6}>
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
               Order Total
             </Typography>

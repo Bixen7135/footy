@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { SyntheticEvent } from 'react';
 import {
   Container,
   Typography,
@@ -9,8 +10,11 @@ import {
   AccordionSummary,
   AccordionDetails,
   Paper,
+  Stack,
+  Chip,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { motion } from 'framer-motion';
 
 const FAQ_CATEGORIES = [
   {
@@ -103,82 +107,183 @@ const FAQ_CATEGORIES = [
 export default function FAQPage() {
   const [expanded, setExpanded] = useState<string | false>(false);
 
-  const handleChange = (panel: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
+  const handleChange = (panel: string) => (_: SyntheticEvent, isExpanded: boolean) => {
     setExpanded(isExpanded ? panel : false);
   };
 
-  return (
-    <Container maxWidth="md" sx={{ py: 6 }}>
-      <Box sx={{ textAlign: 'center', mb: 6 }}>
-        <Typography variant="h3" fontWeight={700} gutterBottom>
-          Frequently Asked Questions
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
-          Find answers to common questions about shopping at Footy. Can&apos;t find what
-          you&apos;re looking for? Contact our support team.
-        </Typography>
-      </Box>
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08, delayChildren: 0.12 },
+    },
+  };
 
-      {FAQ_CATEGORIES.map((category) => (
-        <Box key={category.title} sx={{ mb: 4 }}>
-          <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
-            {category.title}
-          </Typography>
-          <Paper elevation={0} sx={{ border: 1, borderColor: 'divider', borderRadius: 2 }}>
-            {category.questions.map((faq, index) => {
-              const panelId = `${category.title}-${index}`;
-              return (
-                <Accordion
-                  key={panelId}
-                  expanded={expanded === panelId}
-                  onChange={handleChange(panelId)}
-                  elevation={0}
-                  disableGutters
+  const itemVariants = {
+    hidden: { opacity: 0, y: 22 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  };
+
+  return (
+    <Box sx={{ bgcolor: 'background.default' }}>
+      <Box sx={{ position: 'relative', overflow: 'hidden', py: { xs: 5, md: 8 } }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            background: (theme) =>
+              theme.palette.mode === 'light'
+                ? 'radial-gradient(circle at 18% 10%, rgba(24, 24, 24, 0.08) 0%, transparent 45%), radial-gradient(circle at 85% 8%, rgba(158, 255, 0, 0.2) 0%, transparent 50%), radial-gradient(circle at 8% 80%, rgba(158, 255, 0, 0.16) 0%, transparent 50%)'
+                : 'radial-gradient(circle at 18% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 45%), radial-gradient(circle at 85% 8%, rgba(158, 255, 0, 0.18) 0%, transparent 50%), radial-gradient(circle at 8% 80%, rgba(158, 255, 0, 0.12) 0%, transparent 50%)',
+            opacity: 0.9,
+          }}
+        />
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          <motion.div variants={containerVariants} initial="hidden" animate="show">
+            <motion.div variants={itemVariants}>
+              <Box sx={{ maxWidth: 760 }}>
+                <Typography
                   sx={{
-                    '&:before': { display: 'none' },
-                    borderBottom: index < category.questions.length - 1 ? 1 : 0,
-                    borderColor: 'divider',
+                    fontSize: '0.75rem',
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    color: 'text.secondary',
+                    mb: 2,
                   }}
                 >
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
-                    sx={{ py: 1 }}
-                  >
-                    <Typography fontWeight={500}>{faq.question}</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ pt: 0 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {faq.answer}
-                    </Typography>
-                  </AccordionDetails>
-                </Accordion>
-              );
-            })}
-          </Paper>
-        </Box>
-      ))}
+                  Support index
+                </Typography>
+                <Typography
+                  component="h1"
+                  sx={{
+                    fontSize: { xs: '2.4rem', sm: '3.2rem', md: '4rem' },
+                    fontWeight: 900,
+                    lineHeight: 0.95,
+                    letterSpacing: '-0.04em',
+                    fontFamily: 'var(--font-satoshi)',
+                    mb: 2,
+                  }}
+                >
+                  Answers, refined.
+                </Typography>
+                <Typography sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+                  Find guidance on orders, returns, sizing, and account details. If you need a custom
+                  answer, reach our team any time.
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mt: 3, flexWrap: 'wrap', rowGap: 1 }}>
+                  {FAQ_CATEGORIES.map((category) => (
+                    <Chip
+                      key={category.title}
+                      label={category.title}
+                      sx={{
+                        borderRadius: '999px',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        bgcolor: 'transparent',
+                        fontWeight: 600,
+                        fontSize: '0.7rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.08em',
+                      }}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            </motion.div>
+          </motion.div>
+        </Container>
+      </Box>
 
-      <Paper
-        elevation={0}
-        sx={{
-          p: 4,
-          mt: 6,
-          textAlign: 'center',
-          bgcolor: 'grey.50',
-          border: 1,
-          borderColor: 'divider',
-        }}
-      >
-        <Typography variant="h6" fontWeight={600} gutterBottom>
-          Still have questions?
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Our customer support team is here to help you.
-        </Typography>
-        <Typography variant="body2" fontWeight={500}>
-          Email us at support@footy.com
-        </Typography>
-      </Paper>
-    </Container>
+      <Container maxWidth="lg" sx={{ pb: { xs: 6, md: 10 } }}>
+        <motion.div variants={containerVariants} initial="hidden" whileInView="show" viewport={{ once: true }}>
+          {FAQ_CATEGORIES.map((category) => (
+            <motion.div key={category.title} variants={itemVariants}>
+              <Box sx={{ mb: 4 }}>
+                <Typography
+                  sx={{
+                    fontSize: '1.4rem',
+                    fontWeight: 800,
+                    letterSpacing: '-0.02em',
+                    fontFamily: 'var(--font-satoshi)',
+                    mb: 2,
+                  }}
+                >
+                  {category.title}
+                </Typography>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    bgcolor: 'background.paper',
+                  }}
+                >
+                  {category.questions.map((faq, index) => {
+                    const panelId = `${category.title}-${index}`;
+                    return (
+                      <Accordion
+                        key={panelId}
+                        expanded={expanded === panelId}
+                        onChange={handleChange(panelId)}
+                        elevation={0}
+                        disableGutters
+                        sx={{
+                          '&:before': { display: 'none' },
+                          borderBottom: index < category.questions.length - 1 ? 1 : 0,
+                          borderColor: 'divider',
+                        }}
+                      >
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ py: 1.5, px: 3 }}>
+                          <Typography fontWeight={600}>{faq.question}</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails sx={{ pt: 0, px: 3, pb: 3 }}>
+                          <Typography variant="body2" color="text.secondary">
+                            {faq.answer}
+                          </Typography>
+                        </AccordionDetails>
+                      </Accordion>
+                    );
+                  })}
+                </Paper>
+              </Box>
+            </motion.div>
+          ))}
+
+          <motion.div variants={itemVariants}>
+            <Paper
+              elevation={0}
+              sx={{
+                p: { xs: 3, md: 4 },
+                mt: 4,
+                textAlign: 'center',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: '22px',
+                bgcolor: 'background.paper',
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '1.4rem',
+                  fontWeight: 800,
+                  letterSpacing: '-0.02em',
+                  fontFamily: 'var(--font-satoshi)',
+                  mb: 1,
+                }}
+              >
+                Still have questions?
+              </Typography>
+              <Typography color="text.secondary" sx={{ mb: 2 }}>
+                Our customer support team is ready to help.
+              </Typography>
+              <Typography fontWeight={600}>Email us at support@footy.com</Typography>
+            </Paper>
+          </motion.div>
+        </motion.div>
+      </Container>
+    </Box>
   );
 }

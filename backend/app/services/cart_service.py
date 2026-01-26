@@ -2,10 +2,11 @@
 import json
 from datetime import datetime
 from uuid import UUID
-from typing import Optional
+from typing import Optional, Callable
 from decimal import Decimal
 
 import redis.asyncio as redis
+from redis.exceptions import WatchError
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +20,7 @@ from app.schemas import (
 
 CART_KEY_PREFIX = "cart:"
 CART_TTL = 60 * 60 * 24 * 30  # 30 days
+MAX_RETRIES = 5  # Maximum retries for atomic operations
 
 
 class CartService:
@@ -31,6 +33,74 @@ class CartService:
     def _cart_key(self, session_id: str) -> str:
         """Generate Redis key for cart."""
         return f"{CART_KEY_PREFIX}{session_id}"
+
+    async def _atomic_update_cart(
+        self,
+        session_id: str,
+        modifier_fn: Callable[[dict], dict],
+        user_id: Optional[UUID] = None,
+    ) -> dict:
+        """
+        Atomically update cart using Redis WATCH/MULTI/EXEC pattern.
+
+        This prevents lost updates when multiple requests modify the same cart
+        concurrently. If the cart is modified between WATCH and EXEC, the
+        transaction is retried.
+
+        Args:
+            session_id: The cart session identifier
+            modifier_fn: A function that takes the current cart dict and returns modified cart dict
+            user_id: Optional user ID to associate with the cart
+
+        Returns:
+            The modified cart dictionary
+
+        Raises:
+            RuntimeError: If max retries exceeded
+        """
+        cart_key = self._cart_key(session_id)
+
+        for attempt in range(MAX_RETRIES):
+            try:
+                async with self.redis.pipeline(transaction=True) as pipe:
+                    # Watch the cart key for changes
+                    await pipe.watch(cart_key)
+
+                    # Get current cart data (outside transaction)
+                    cart_data = await self.redis.get(cart_key)
+                    if cart_data:
+                        cart_dict = json.loads(cart_data)
+                    else:
+                        cart_dict = {"items": [], "user_id": str(user_id) if user_id else None}
+
+                    # Apply modification function
+                    modified_cart = modifier_fn(cart_dict)
+
+                    # Update user_id if provided
+                    if user_id:
+                        modified_cart["user_id"] = str(user_id)
+
+                    # Start transaction
+                    pipe.multi()
+
+                    # Set the modified cart atomically
+                    pipe.setex(cart_key, CART_TTL, json.dumps(modified_cart))
+
+                    # Execute transaction
+                    await pipe.execute()
+
+                    return modified_cart
+
+            except WatchError:
+                # Cart was modified by another request, retry
+                if attempt == MAX_RETRIES - 1:
+                    raise RuntimeError(
+                        f"Failed to update cart after {MAX_RETRIES} attempts due to concurrent modifications"
+                    )
+                continue
+
+        # Should not reach here, but just in case
+        raise RuntimeError("Unexpected error in atomic cart update")
 
     async def get_cart(self, session_id: str, user_id: Optional[UUID] = None) -> CartResponse:
         """Get cart for session or user."""
@@ -70,54 +140,56 @@ class CartService:
         item: CartItemCreate,
         user_id: Optional[UUID] = None,
     ) -> CartResponse:
-        """Add item to cart."""
+        """Add item to cart with atomic Redis operations."""
         # Validate product and variant exist
         variant = await self._get_variant(item.variant_id)
         if not variant:
             raise ValueError("Product variant not found")
 
-        if variant.stock < (item.quantity or 1):
+        quantity = item.quantity or 1
+
+        if variant.stock < quantity:
             raise ValueError("Insufficient stock")
 
         product = await self._get_product(item.product_id)
         if not product:
             raise ValueError("Product not found")
 
-        # Get current cart
-        cart_key = self._cart_key(session_id)
-        cart_data = await self.redis.get(cart_key)
+        # Capture values for closure
+        variant_id_str = str(item.variant_id)
+        product_id_str = str(item.product_id)
+        product_price = float(product.price)
 
-        if cart_data:
-            cart_dict = json.loads(cart_data)
+        def add_item_modifier(cart_dict: dict) -> dict:
+            """Modifier function to add item to cart."""
             items = cart_dict.get("items", [])
-        else:
-            items = []
 
-        # Check if item already exists
-        existing_item = None
-        for idx, cart_item in enumerate(items):
-            if cart_item["variant_id"] == str(item.variant_id):
-                existing_item = idx
-                break
+            # Check if item already exists
+            existing_idx = None
+            for idx, cart_item in enumerate(items):
+                if cart_item["variant_id"] == variant_id_str:
+                    existing_idx = idx
+                    break
 
-        quantity = item.quantity or 1
+            if existing_idx is not None:
+                # Update quantity
+                items[existing_idx]["quantity"] += quantity
+            else:
+                # Generate a unique ID based on timestamp and item count
+                import uuid
+                items.append({
+                    "id": str(uuid.uuid4()),
+                    "product_id": product_id_str,
+                    "variant_id": variant_id_str,
+                    "quantity": quantity,
+                    "unit_price": product_price,
+                })
 
-        if existing_item is not None:
-            # Update quantity
-            items[existing_item]["quantity"] += quantity
-        else:
-            # Add new item
-            items.append({
-                "id": str(UUID(int=len(items) + 1)),  # Simple ID for cart item
-                "product_id": str(item.product_id),
-                "variant_id": str(item.variant_id),
-                "quantity": quantity,
-                "unit_price": float(product.price),
-            })
+            cart_dict["items"] = items
+            return cart_dict
 
-        # Save to Redis
-        cart_dict = {"items": items, "user_id": str(user_id) if user_id else None}
-        await self.redis.setex(cart_key, CART_TTL, json.dumps(cart_dict))
+        # Atomically update cart
+        await self._atomic_update_cart(session_id, add_item_modifier, user_id)
 
         return await self.get_cart(session_id, user_id)
 
@@ -128,7 +200,7 @@ class CartService:
         update: CartItemUpdate,
         user_id: Optional[UUID] = None,
     ) -> CartResponse:
-        """Update cart item quantity."""
+        """Update cart item quantity with atomic Redis operations."""
         if update.quantity < 0:
             raise ValueError("Quantity cannot be negative")
 
@@ -144,30 +216,40 @@ class CartService:
         if variant.stock < update.quantity:
             raise ValueError("Insufficient stock")
 
-        # Get current cart
+        # Check cart exists before atomic update
         cart_key = self._cart_key(session_id)
         cart_data = await self.redis.get(cart_key)
-
         if not cart_data:
             raise ValueError("Cart not found")
 
-        cart_dict = json.loads(cart_data)
-        items = cart_dict.get("items", [])
+        # Capture values for closure
+        variant_id_str = str(variant_id)
+        new_quantity = update.quantity
 
-        # Find and update item
-        found = False
-        for cart_item in items:
-            if cart_item["variant_id"] == str(variant_id):
-                cart_item["quantity"] = update.quantity
-                found = True
-                break
+        class ItemNotFoundError(Exception):
+            pass
 
-        if not found:
+        def update_item_modifier(cart_dict: dict) -> dict:
+            """Modifier function to update item quantity."""
+            items = cart_dict.get("items", [])
+
+            found = False
+            for cart_item in items:
+                if cart_item["variant_id"] == variant_id_str:
+                    cart_item["quantity"] = new_quantity
+                    found = True
+                    break
+
+            if not found:
+                raise ItemNotFoundError()
+
+            cart_dict["items"] = items
+            return cart_dict
+
+        try:
+            await self._atomic_update_cart(session_id, update_item_modifier, user_id)
+        except ItemNotFoundError:
             raise ValueError("Item not found in cart")
-
-        # Save to Redis
-        cart_dict["items"] = items
-        await self.redis.setex(cart_key, CART_TTL, json.dumps(cart_dict))
 
         return await self.get_cart(session_id, user_id)
 
@@ -177,22 +259,25 @@ class CartService:
         variant_id: UUID,
         user_id: Optional[UUID] = None,
     ) -> CartResponse:
-        """Remove item from cart."""
+        """Remove item from cart with atomic Redis operations."""
+        # Check cart exists before atomic update
         cart_key = self._cart_key(session_id)
         cart_data = await self.redis.get(cart_key)
-
         if not cart_data:
             raise ValueError("Cart not found")
 
-        cart_dict = json.loads(cart_data)
-        items = cart_dict.get("items", [])
+        # Capture values for closure
+        variant_id_str = str(variant_id)
 
-        # Filter out the item
-        items = [item for item in items if item["variant_id"] != str(variant_id)]
+        def remove_item_modifier(cart_dict: dict) -> dict:
+            """Modifier function to remove item from cart."""
+            items = cart_dict.get("items", [])
+            # Filter out the item
+            items = [item for item in items if item["variant_id"] != variant_id_str]
+            cart_dict["items"] = items
+            return cart_dict
 
-        # Save to Redis
-        cart_dict["items"] = items
-        await self.redis.setex(cart_key, CART_TTL, json.dumps(cart_dict))
+        await self._atomic_update_cart(session_id, remove_item_modifier, user_id)
 
         return await self.get_cart(session_id, user_id)
 
@@ -223,6 +308,56 @@ class CartService:
         await self.redis.setex(anon_cart_key, CART_TTL, json.dumps(cart_dict))
 
         return await self.get_cart(anonymous_session_id, user_id)
+
+    async def refresh_prices(
+        self,
+        session_id: str,
+        user_id: Optional[UUID] = None,
+    ) -> CartResponse:
+        """
+        Refresh cart item prices to match current product prices.
+
+        This should be called when a PriceChangedError is received during checkout,
+        or periodically to keep cart prices up-to-date.
+
+        Returns the updated cart with current prices.
+        """
+        # Get current cart
+        cart_key = self._cart_key(session_id)
+        cart_data = await self.redis.get(cart_key)
+
+        if not cart_data:
+            return await self.get_cart(session_id, user_id)
+
+        cart_dict = json.loads(cart_data)
+        items = cart_dict.get("items", [])
+
+        if not items:
+            return await self.get_cart(session_id, user_id)
+
+        # Update each item's price to current product price
+        updated_items = []
+        for item in items:
+            product_id = UUID(item["product_id"])
+            product = await self._get_product(product_id)
+
+            if not product:
+                # Skip items with deleted products
+                continue
+
+            # Update price to current product price
+            updated_item = item.copy()
+            updated_item["unit_price"] = float(product.price)
+            updated_items.append(updated_item)
+
+        # Save updated cart atomically
+        def update_prices_modifier(cart_dict: dict) -> dict:
+            cart_dict["items"] = updated_items
+            return cart_dict
+
+        await self._atomic_update_cart(session_id, update_prices_modifier, user_id)
+
+        return await self.get_cart(session_id, user_id)
 
     async def _get_product(self, product_id: UUID) -> Optional[Product]:
         """Get product by ID."""
