@@ -88,6 +88,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: dev
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8000
     container_name: footy-frontend
@@ -121,8 +122,8 @@ services:
     command: >
       /bin/sh -c "
         rm -rf node_modules/.cache &&
-        npm ci &&
-        npm run dev -- -H 0.0.0.0 -p 3000
+        bun install --frozen-lockfile &&
+        bun run dev -- -H 0.0.0.0 -p 3000
       "
 
 volumes:

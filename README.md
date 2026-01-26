@@ -121,7 +121,7 @@ The API will be available at `http://localhost:8000`.
 
 2. Install dependencies:
    ```bash
-   npm install
+   bun install
    ```
 
 3. Set up environment variables:
@@ -132,7 +132,7 @@ The API will be available at `http://localhost:8000`.
 
 4. Start the development server:
    ```bash
-   npm run dev
+   bun run dev
    ```
 
 The application will be available at `http://localhost:3000`.
@@ -154,7 +154,7 @@ pytest
 ### Frontend Tests
 ```bash
 cd frontend
-npm run test
+bun run test
 ```
 
 ## Default Accounts

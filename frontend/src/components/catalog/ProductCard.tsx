@@ -20,12 +20,14 @@ interface ProductCardProps {
   product: Product;
   onWishlistToggle?: (productId: string) => void;
   isInWishlist?: boolean;
+  variant?: 'grid' | 'list';
 }
 
 export function ProductCard({
   product,
   onWishlistToggle,
   isInWishlist = false,
+  variant = 'grid',
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -55,21 +57,29 @@ export function ProductCard({
   const formatPrice = (value: number | null) =>
     value === null || !Number.isFinite(value) ? '--' : value.toFixed(2);
 
+  // List variant styling
+  const isListView = variant === 'list';
+
   return (
     <Card
       sx={{
         height: '100%',
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: isListView ? { xs: 'column', sm: 'row' } : 'column',
         position: 'relative',
-        transition: 'transform 200ms ease, box-shadow 200ms ease',
+        transition: 'transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease',
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: '20px',
         '&:hover': {
-          boxShadow: 6,
-          transform: 'translateY(-2px)',
+          boxShadow: isListView ? 4 : 6,
+          transform: isListView ? 'none' : 'translateY(-2px)',
+          borderColor: 'accent.main',
         },
         '&:focus-within': {
-          boxShadow: 6,
-          transform: 'translateY(-2px)',
+          boxShadow: isListView ? 4 : 6,
+          transform: isListView ? 'none' : 'translateY(-2px)',
+          borderColor: 'accent.main',
         },
         '&:hover .product-card-actions, &:focus-within .product-card-actions': {
           opacity: 1,
@@ -142,8 +152,17 @@ export function ProductCard({
       )}
 
       {/* Product image */}
-      <Link href={productHref} style={{ textDecoration: 'none' }}>
-        <Box sx={{ position: 'relative', paddingTop: '100%', overflow: 'hidden' }}>
+      <Link href={productHref} style={{ textDecoration: 'none', flex: isListView ? '0 0 200px' : 'auto' }}>
+        <Box
+          sx={{
+            position: 'relative',
+            paddingTop: isListView ? '0' : '100%',
+            height: isListView ? { xs: '200px', sm: '200px' } : 'auto',
+            width: isListView ? '100%' : 'auto',
+            overflow: 'hidden',
+            borderRadius: isListView ? { xs: '20px 20px 0 0', sm: '20px 0 0 20px' } : '20px 20px 0 0',
+          }}
+        >
           {hasImage ? (
             <CardMedia
               component="img"
@@ -151,7 +170,7 @@ export function ProductCard({
               alt={product.name}
               onError={() => setImageError(true)}
               sx={{
-                position: 'absolute',
+                position: isListView ? 'relative' : 'absolute',
                 top: 0,
                 left: 0,
                 width: '100%',
@@ -167,8 +186,9 @@ export function ProductCard({
           ) : (
             <Box
               sx={{
-                position: 'absolute',
-                inset: 0,
+                position: isListView ? 'relative' : 'absolute',
+                inset: isListView ? 'auto' : 0,
+                height: isListView ? '100%' : 'auto',
                 bgcolor: 'grey.100',
                 display: 'flex',
                 alignItems: 'center',
@@ -186,66 +206,78 @@ export function ProductCard({
       </Link>
 
       {/* Product info */}
-      <CardContent sx={{ flexGrow: 1, pt: 2, pb: 2, display: 'flex', flexDirection: 'column' }}>
-        <Link href={productHref} style={{ textDecoration: 'none', color: 'inherit' }}>
-          <Typography
-            variant="subtitle1"
-            component="h3"
-            sx={{
-              fontWeight: 600,
-              lineHeight: 1.3,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-            }}
-          >
-            {product.name}
-          </Typography>
-        </Link>
-
-        {/* Price */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-          <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
-            ${formatPrice(price)}
-          </Typography>
-          {hasComparePrice && (
+      <CardContent
+        sx={{
+          flexGrow: 1,
+          pt: 2,
+          pb: 2,
+          px: isListView ? 3 : 2,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: isListView ? 'space-between' : 'flex-start',
+        }}
+      >
+        <Box>
+          <Link href={productHref} style={{ textDecoration: 'none', color: 'inherit' }}>
             <Typography
-              variant="body2"
-              component="span"
-              color="text.secondary"
-              sx={{ textDecoration: 'line-through' }}
+              variant={isListView ? 'h6' : 'subtitle1'}
+              component="h3"
+              sx={{
+                fontWeight: 600,
+                lineHeight: 1.3,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: '-webkit-box',
+                WebkitLineClamp: isListView ? 3 : 2,
+                WebkitBoxOrient: 'vertical',
+              }}
             >
-              ${formatPrice(comparePrice as number)}
+              {product.name}
+            </Typography>
+          </Link>
+
+          {product.brand && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ textTransform: 'uppercase', letterSpacing: 0.5, mt: 0.5, display: 'block' }}
+            >
+              {product.brand}
             </Typography>
           )}
+
+          {/* Price */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+            <Typography variant="h6" component="span" sx={{ fontWeight: 600 }}>
+              ${formatPrice(price)}
+            </Typography>
+            {hasComparePrice && (
+              <Typography
+                variant="body2"
+                component="span"
+                color="text.secondary"
+                sx={{ textDecoration: 'line-through' }}
+              >
+                ${formatPrice(comparePrice as number)}
+              </Typography>
+            )}
+          </Box>
         </Box>
 
-        {product.brand && (
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ textTransform: 'uppercase', letterSpacing: 0.5, mt: 0.5 }}
-          >
-            {product.brand}
-          </Typography>
-        )}
-
         {/* Sizes + quick add */}
-        <Box sx={{ position: 'relative', mt: 2, minHeight: 64 }}>
+        <Box sx={{ position: 'relative', mt: 2, minHeight: isListView ? 'auto' : 64 }}>
           <Box
             className="product-card-actions"
             sx={{
-              position: 'absolute',
-              inset: 0,
+              position: isListView ? 'relative' : 'absolute',
+              inset: isListView ? 'auto' : 0,
               display: 'flex',
               flexDirection: 'column',
               gap: 1,
-              opacity: 0,
-              transform: 'translateY(8px)',
+              opacity: isListView ? 1 : 0,
+              transform: isListView ? 'none' : 'translateY(8px)',
               transition: 'opacity 180ms ease, transform 180ms ease',
-              pointerEvents: 'none',
+              pointerEvents: isListView ? 'auto' : 'none',
               '@media (prefers-reduced-motion: reduce)': {
                 transition: 'none',
                 transform: 'none',
@@ -260,7 +292,11 @@ export function ProductCard({
                     label={size}
                     size="small"
                     variant="outlined"
-                    sx={{ fontSize: '0.7rem', height: 24 }}
+                    sx={{
+                      fontSize: '0.7rem',
+                      height: 24,
+                      borderRadius: '6px',
+                    }}
                   />
                 ))}
                 {extraSizes > 0 && (
@@ -268,7 +304,11 @@ export function ProductCard({
                     label={`+${extraSizes}`}
                     size="small"
                     variant="outlined"
-                    sx={{ fontSize: '0.7rem', height: 24 }}
+                    sx={{
+                      fontSize: '0.7rem',
+                      height: 24,
+                      borderRadius: '6px',
+                    }}
                   />
                 )}
               </Box>
@@ -276,11 +316,19 @@ export function ProductCard({
             <Button
               size="small"
               variant="contained"
-              color="primary"
               component={Link}
               href={productHref}
               aria-label={`Quick add ${product.name}`}
-              sx={{ alignSelf: 'flex-start', textTransform: 'none' }}
+              sx={{
+                alignSelf: 'flex-start',
+                textTransform: 'none',
+                bgcolor: 'accent.main',
+                color: 'accent.contrastText',
+                borderRadius: '8px',
+                '&:hover': {
+                  bgcolor: 'accent.dark',
+                },
+              }}
             >
               Quick Add
             </Button>
