@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useEffect } from 'react';
 import { Inter } from 'next/font/google';
 import localFont from 'next/font/local';
 import { ThemeProvider, createTheme, ThemeOptions } from '@mui/material/styles';
@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Box, useMediaQuery } from '@mui/material';
 import { Header, Footer } from '@/components/layout';
+import { initializeAuth } from '@/stores/auth';
 
 // Satoshi font for headings
 // Note: To use Satoshi font, place font files in public/fonts/ directory:
@@ -428,6 +429,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         },
       })
   );
+
+  // Initialize auth on app load
+  useEffect(() => {
+    initializeAuth();
+  }, []);
 
   return (
     <html lang="en" className={`${satoshi.variable} ${inter.variable}`}>

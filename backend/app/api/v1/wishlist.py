@@ -42,10 +42,7 @@ async def add_to_wishlist(
     Idempotent: adding the same product twice returns the existing item.
     Requires authentication.
     """
-    try:
-        return await wishlist_service.add_item(current_user.id, item_data.product_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await wishlist_service.add_item(current_user.id, item_data.product_id)
 
 
 @router.delete("/items/{product_id}", status_code=204)

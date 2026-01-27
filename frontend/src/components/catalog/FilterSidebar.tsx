@@ -201,6 +201,8 @@ export function FilterSidebar({
   };
 
   const handleGenderToggle = (gender: string) => {
+    // When selecting Men or Women, we need to include Unisex products
+    // This is handled on the backend by modifying the filter
     onFilterChange({
       ...filters,
       gender: filters.gender === gender ? undefined : gender,
@@ -265,79 +267,6 @@ export function FilterSidebar({
 
   return (
     <Box sx={{ width: '100%' }}>
-      {/* Search */}
-      <Box sx={{ mb: 4 }}>
-        <Box
-          sx={{
-            position: 'relative',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            px: 2,
-            py: 1.75,
-            bgcolor: 'background.paper',
-            border: '2px solid',
-            borderColor: 'divider',
-            borderRadius: '14px',
-            transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
-            '&:focus-within': {
-              borderColor: 'secondary.main',
-              bgcolor: (theme) =>
-                theme.palette.mode === 'light'
-                  ? 'rgba(158, 255, 0, 0.04)'
-                  : 'rgba(158, 255, 0, 0.08)',
-            },
-          }}
-        >
-          <Box sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center' }}>
-            <SearchIcon />
-          </Box>
-          <Box
-            component="input"
-            type="text"
-            placeholder="Search products..."
-            value={searchInput}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            sx={{
-              flex: 1,
-              border: 'none',
-              outline: 'none',
-              bgcolor: 'transparent',
-              fontSize: '0.95rem',
-              fontWeight: 500,
-              color: 'text.primary',
-              fontFamily: 'inherit',
-              '&::placeholder': {
-                color: 'text.disabled',
-              },
-            }}
-          />
-          {searchInput && (
-            <Box
-              component="button"
-              onClick={handleSearchClear}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                p: 0.5,
-                bgcolor: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'text.secondary',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  color: 'error.main',
-                  transform: 'rotate(90deg)',
-                },
-              }}
-            >
-              <CloseIcon />
-            </Box>
-          )}
-        </Box>
-      </Box>
-
       {/* Clear filters button */}
       <AnimatePresence>
         {hasActiveFilters && (

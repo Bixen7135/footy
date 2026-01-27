@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useAuthStore, initializeAuth } from '@/stores/auth';
+import { useAuthStore } from '@/stores/auth';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,18 +14,9 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user, isLoading } = useAuthStore();
-  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    const init = async () => {
-      await initializeAuth();
-      setIsInitialized(true);
-    };
-    init();
-  }, []);
-
-  useEffect(() => {
-    if (!isInitialized || isLoading) return;
+    if (isLoading) return;
 
     if (!isAuthenticated) {
       // Redirect to login with return URL
@@ -38,10 +29,10 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
       router.push('/');
       return;
     }
-  }, [isInitialized, isLoading, isAuthenticated, user, requireAdmin, router, pathname]);
+  }, [isLoading, isAuthenticated, user, requireAdmin, router, pathname]);
 
-  // Show loading while initializing
-  if (!isInitialized || isLoading) {
+  // Show loading while checking auth
+  if (isLoading) {
     return (
       <Box
         sx={{

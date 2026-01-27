@@ -33,7 +33,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import LogoutIcon from '@mui/icons-material/Logout';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { useCartItemCount, useCartStore } from '@/stores/cart';
-import { useAuthStore, initializeAuth } from '@/stores/auth';
+import { useAuthStore } from '@/stores/auth';
 
 const NAV_ITEMS = [
   { label: 'Home', href: '/' },
@@ -51,7 +51,6 @@ export function Header() {
 
   useEffect(() => {
     fetchCart();
-    initializeAuth();
   }, [fetchCart]);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

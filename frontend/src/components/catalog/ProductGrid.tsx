@@ -107,7 +107,7 @@ export function ProductGrid({
   };
 
   if (isLoading) {
-    return <ProductGridSkeleton count={12} />;
+    return <ProductGridSkeleton count={12} viewMode={viewMode} />;
   }
 
   if (isError) {

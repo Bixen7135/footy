@@ -11,6 +11,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import (
+    InsufficientStockError,
+    NotFoundError,
+    ValidationError,
+)
 from app.models import Product, ProductVariant, Cart, CartItem, User
 from app.schemas import (
     CartItemCreate, CartItemUpdate, CartItemResponse, CartResponse,
@@ -66,8 +71,9 @@ class CartService:
                     # Watch the cart key for changes
                     await pipe.watch(cart_key)
 
-                    # Get current cart data (outside transaction)
-                    cart_data = await self.redis.get(cart_key)
+                    # Get current cart data through watched pipeline
+                    results = await pipe.get(cart_key).execute()
+                    cart_data = results[0]
                     if cart_data:
                         cart_dict = json.loads(cart_data)
                     else:
@@ -144,21 +150,36 @@ class CartService:
         # Validate product and variant exist
         variant = await self._get_variant(item.variant_id)
         if not variant:
-            raise ValueError("Product variant not found")
+            raise NotFoundError("ProductVariant", item.variant_id)
 
         quantity = item.quantity or 1
 
-        if variant.stock < quantity:
-            raise ValueError("Insufficient stock")
+        # Get existing quantity if item already in cart
+        cart_key = self._cart_key(session_id)
+        cart_data = await self.redis.get(cart_key)
+        existing_qty = 0
+        if cart_data:
+            cart_dict = json.loads(cart_data)
+            for cart_item in cart_dict.get("items", []):
+                if cart_item["variant_id"] == str(item.variant_id):
+                    existing_qty = cart_item["quantity"]
+                    break
+
+        # Validate total quantity
+        total_qty = existing_qty + quantity
+        if variant.stock < total_qty:
+            product_for_error = await self._get_product(item.product_id)
+            product_name = product_for_error.name if product_for_error else "Unknown product"
+            raise InsufficientStockError(product_name, total_qty, variant.stock)
 
         product = await self._get_product(item.product_id)
         if not product:
-            raise ValueError("Product not found")
+            raise NotFoundError("Product", item.product_id)
 
         # Capture values for closure
         variant_id_str = str(item.variant_id)
         product_id_str = str(item.product_id)
-        product_price = float(product.price)
+        product_price = str(product.price)
 
         def add_item_modifier(cart_dict: dict) -> dict:
             """Modifier function to add item to cart."""
@@ -202,7 +223,7 @@ class CartService:
     ) -> CartResponse:
         """Update cart item quantity with atomic Redis operations."""
         if update.quantity < 0:
-            raise ValueError("Quantity cannot be negative")
+            raise ValidationError("Quantity cannot be negative", "quantity")
 
         # If quantity is 0, remove the item
         if update.quantity == 0:
@@ -211,16 +232,18 @@ class CartService:
         # Validate stock
         variant = await self._get_variant(variant_id)
         if not variant:
-            raise ValueError("Product variant not found")
+            raise NotFoundError("ProductVariant", variant_id)
 
         if variant.stock < update.quantity:
-            raise ValueError("Insufficient stock")
+            product = await self._get_product(variant.product_id)
+            product_name = product.name if product else "Unknown product"
+            raise InsufficientStockError(product_name, update.quantity, variant.stock)
 
         # Check cart exists before atomic update
         cart_key = self._cart_key(session_id)
         cart_data = await self.redis.get(cart_key)
         if not cart_data:
-            raise ValueError("Cart not found")
+            raise NotFoundError("Cart", session_id)
 
         # Capture values for closure
         variant_id_str = str(variant_id)
@@ -249,7 +272,7 @@ class CartService:
         try:
             await self._atomic_update_cart(session_id, update_item_modifier, user_id)
         except ItemNotFoundError:
-            raise ValueError("Item not found in cart")
+            raise NotFoundError("CartItem", variant_id)
 
         return await self.get_cart(session_id, user_id)
 
@@ -264,7 +287,7 @@ class CartService:
         cart_key = self._cart_key(session_id)
         cart_data = await self.redis.get(cart_key)
         if not cart_data:
-            raise ValueError("Cart not found")
+            raise NotFoundError("Cart", session_id)
 
         # Capture values for closure
         variant_id_str = str(variant_id)
@@ -347,7 +370,7 @@ class CartService:
 
             # Update price to current product price
             updated_item = item.copy()
-            updated_item["unit_price"] = float(product.price)
+            updated_item["unit_price"] = str(product.price)
             updated_items.append(updated_item)
 
         # Save updated cart atomically
@@ -439,7 +462,7 @@ class CartService:
                 updated_at=variant.updated_at,
             )
 
-            unit_price = float(item["unit_price"])
+            unit_price = Decimal(item["unit_price"])
             quantity = item["quantity"]
 
             now = datetime.utcnow()

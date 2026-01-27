@@ -53,11 +53,34 @@ export function ProductCardSkeleton() {
 }
 
 // Product grid skeleton
-export function ProductGridSkeleton({ count = 12 }: { count?: number }) {
+export function ProductGridSkeleton({
+  count = 12,
+  viewMode = 'grid4'
+}: {
+  count?: number;
+  viewMode?: 'grid2' | 'grid3' | 'grid4' | 'list';
+}) {
+  const getGridColumns = () => {
+    switch (viewMode) {
+      case 'grid2':
+        return { xs: 12, sm: 6 };
+      case 'grid3':
+        return { xs: 12, sm: 6, md: 4 };
+      case 'grid4':
+        return { xs: 12, sm: 6, md: 4, lg: 3 };
+      case 'list':
+        return { xs: 12 };
+      default:
+        return { xs: 12, sm: 6, md: 4, lg: 3 };
+    }
+  };
+
+  const gridColumns = getGridColumns();
+
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={viewMode === 'list' ? 2 : 3}>
       {Array.from({ length: count }).map((_, index) => (
-        <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+        <Grid item {...gridColumns} key={index}>
           <ProductCardSkeleton />
         </Grid>
       ))}

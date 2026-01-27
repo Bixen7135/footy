@@ -9,6 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.exceptions import (
+    AuthenticationError,
+    AuthorizationError,
+    ConflictError,
+    InvalidTokenError,
+    NotFoundError,
+)
 from app.models.user import User, UserRole
 from app.schemas.user import (
     UserCreate,
@@ -100,7 +107,7 @@ class AuthService:
         # Check if email already exists
         existing_user = await self.get_user_by_email(user_data.email)
         if existing_user:
-            raise ValueError("Email already registered")
+            raise ConflictError("Email already registered", "User")
 
         # Create user
         user = User(
@@ -127,13 +134,13 @@ class AuthService:
         user = await self.get_user_by_email(credentials.email)
 
         if not user:
-            raise ValueError("Invalid email or password")
+            raise AuthenticationError("Invalid email or password")
 
         if not self.verify_password(credentials.password, user.hashed_password):
-            raise ValueError("Invalid email or password")
+            raise AuthenticationError("Invalid email or password")
 
         if not user.is_active:
-            raise ValueError("Account is disabled")
+            raise AuthorizationError("Account is disabled")
 
         # Generate tokens
         tokens = self.create_tokens(user.id)
@@ -145,22 +152,22 @@ class AuthService:
         payload = self.decode_token(refresh_token)
 
         if not payload:
-            raise ValueError("Invalid refresh token")
+            raise InvalidTokenError("Invalid refresh token")
 
         if payload.type != "refresh":
-            raise ValueError("Invalid token type")
+            raise InvalidTokenError("Invalid token type")
 
         # Check if token is expired
         if datetime.fromtimestamp(payload.exp, tz=timezone.utc) < datetime.now(timezone.utc):
-            raise ValueError("Refresh token expired")
+            raise InvalidTokenError("Refresh token expired")
 
         # Get user
         user = await self.get_user_by_id(payload.sub)
         if not user:
-            raise ValueError("User not found")
+            raise NotFoundError("User", payload.sub)
 
         if not user.is_active:
-            raise ValueError("Account is disabled")
+            raise AuthorizationError("Account is disabled")
 
         # Generate new tokens
         return self.create_tokens(user.id)
@@ -170,20 +177,20 @@ class AuthService:
         payload = self.decode_token(token)
 
         if not payload:
-            raise ValueError("Invalid token")
+            raise InvalidTokenError("Invalid token")
 
         if payload.type != "access":
-            raise ValueError("Invalid token type")
+            raise InvalidTokenError("Invalid token type")
 
         # Check if token is expired
         if datetime.fromtimestamp(payload.exp, tz=timezone.utc) < datetime.now(timezone.utc):
-            raise ValueError("Token expired")
+            raise InvalidTokenError("Token expired")
 
         user = await self.get_user_by_id(payload.sub)
         if not user:
-            raise ValueError("User not found")
+            raise NotFoundError("User", payload.sub)
 
         if not user.is_active:
-            raise ValueError("Account is disabled")
+            raise AuthorizationError("Account is disabled")
 
         return user

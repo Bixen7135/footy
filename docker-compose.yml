@@ -40,8 +40,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '1'
+          memory: 512M
 
   # Backend API
   backend:
@@ -79,7 +79,6 @@ services:
     command: >
       /bin/sh -c "
         alembic upgrade head &&
-        python -m app.db.seed &&
         uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
       "
 
@@ -97,6 +96,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
       NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
     ports:
       - "3000:3000"
     volumes:
@@ -125,6 +125,23 @@ services:
         bun install --frozen-lockfile &&
         bun run dev -- -H 0.0.0.0 -p 3000
       "
+
+  # Database Seed (run once with: docker-compose --profile seed up seed)
+  seed:
+    profiles: ["seed"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: footy-seed
+    environment:
+      DATABASE_URL: postgresql+asyncpg://footy:footy@postgres:5432/footy
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: python -m app.db.seed
 
 volumes:
   postgres_data:

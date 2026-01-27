@@ -19,7 +19,16 @@ def get_real_client_ip(request: Request) -> str:
 
     Returns:
         The client's real IP address.
+
+    Note:
+        Only trusts X-Forwarded-For and X-Real-IP headers when
+        settings.trust_proxy_headers is True. This prevents header
+        spoofing when the backend is directly reachable.
     """
+    # Only trust proxy headers when explicitly configured
+    if not settings.trust_proxy_headers:
+        return get_remote_address(request)
+
     # Check for forwarded header (behind reverse proxy)
     forwarded = request.headers.get("X-Forwarded-For")
     if forwarded:

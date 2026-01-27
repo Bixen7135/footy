@@ -179,6 +179,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 ### Frontend (.env.local)
 ```
+# API URL must include the full path including /api/v1
 NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 ```
 

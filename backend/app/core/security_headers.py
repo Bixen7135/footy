@@ -37,9 +37,20 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
                 "max-age=31536000; includeSubDomains"
             )
 
-        # Content Security Policy (API-appropriate - restrictive)
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'none'; frame-ancestors 'none'"
-        )
+        # Content Security Policy - path-based configuration
+        if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+            # Relaxed CSP for API documentation (Swagger UI/ReDoc)
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net unpkg.com; "
+                "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+                "img-src 'self' data:; "
+                "frame-ancestors 'none'"
+            )
+        else:
+            # Strict CSP for API endpoints (no script/style execution)
+            response.headers["Content-Security-Policy"] = (
+                "default-src 'none'; frame-ancestors 'none'"
+            )
 
         return response

@@ -10,7 +10,22 @@ logger = get_logger(__name__)
 
 
 class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
-    """Limit request body size to prevent abuse."""
+    """Limit request body size to prevent abuse.
+
+    This middleware checks the Content-Length header and rejects requests
+    that exceed the configured maximum size (settings.max_request_size_bytes).
+
+    Limitations:
+        - Only validates Content-Length header, not actual body streaming
+        - Chunked transfer encoding or missing Content-Length bypasses this check
+        - For production deployment, enforce body size limits at reverse proxy:
+          * nginx: client_max_body_size 10m;
+          * traefik: buffering.maxRequestBodyBytes: 10485760
+          * cloudflare: Max Upload Size in dashboard
+
+    Returns:
+        413 Payload Too Large if Content-Length exceeds limit
+    """
 
     async def dispatch(self, request: Request, call_next) -> Response:
         # Check Content-Length header

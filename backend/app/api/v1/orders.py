@@ -44,15 +44,12 @@ async def create_order(
     """
     session_id = get_or_create_session_id(request, response)
 
-    try:
-        order = await order_service.create_order(
-            order_data=order_data,
-            user_id=current_user.id,
-            session_id=session_id,
-        )
-        return order
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    order = await order_service.create_order(
+        order_data=order_data,
+        user_id=current_user.id,
+        session_id=session_id,
+    )
+    return order
 
 
 @router.get("", response_model=OrderListResponse)

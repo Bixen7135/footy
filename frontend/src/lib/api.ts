@@ -1,6 +1,8 @@
 // API client - base configuration
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import type { Token } from '@/types';
+import { clearTokens } from '@/stores/auth';
+import { convertMoneyFieldsToCents } from './money';
 
 // Default to same-origin so Next rewrites can proxy to the backend in dev.
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
@@ -16,6 +18,9 @@ let failedQueue: Array<{
   reject: (error: Error) => void;
 }> = [];
 
+// Maximum number of requests to queue during refresh
+const MAX_QUEUE_SIZE = 100;
+
 const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -28,12 +33,27 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 };
 
 export const api = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
+
+// Response interceptor to convert money fields from dollars to cents
+api.interceptors.response.use(
+  (response) => {
+    // Convert all money fields in response data from dollars (float) to cents (int)
+    if (response.data) {
+      response.data = convertMoneyFieldsToCents(response.data);
+    }
+    return response;
+  },
+  (error) => {
+    // Let error pass through to next interceptor
+    return Promise.reject(error);
+  }
+);
 
 // Request interceptor for auth token
 api.interceptors.request.use(
@@ -84,6 +104,11 @@ api.interceptors.response.use(
 
     // If already refreshing, queue this request
     if (isRefreshing) {
+      // Prevent memory leak - reject if queue is too large
+      if (failedQueue.length >= MAX_QUEUE_SIZE) {
+        return Promise.reject(new Error('Too many pending requests'));
+      }
+
       return new Promise((resolve, reject) => {
         failedQueue.push({
           resolve: (token: string) => {
@@ -106,10 +131,13 @@ api.interceptors.response.use(
 
     if (!refreshToken) {
       isRefreshing = false;
-      // Clear tokens and redirect to login
+      // Clear tokens and logout
       if (typeof window !== 'undefined') {
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        clearTokens();
+        // Import store dynamically to avoid circular dependency
+        import('@/stores/auth').then(({ useAuthStore }) => {
+          useAuthStore.getState().logout();
+        });
       }
       return Promise.reject(error);
     }
@@ -136,10 +164,13 @@ api.interceptors.response.use(
 
       return api(originalRequest);
     } catch (refreshError) {
-      // Refresh failed, clear tokens
+      // Refresh failed, clear tokens and logout
       if (typeof window !== 'undefined') {
-        localStorage.removeItem(ACCESS_TOKEN_KEY);
-        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        clearTokens();
+        // Import store dynamically to avoid circular dependency
+        import('@/stores/auth').then(({ useAuthStore }) => {
+          useAuthStore.getState().logout();
+        });
       }
       processQueue(new Error('Token refresh failed'));
       isRefreshing = false;

@@ -4,6 +4,8 @@ from typing import Optional
 
 from fastapi import Request, Response
 
+from app.core.config import settings
+
 
 SESSION_COOKIE_NAME = "footy_session_id"
 SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
@@ -27,7 +29,7 @@ def set_session_cookie(response: Response, session_id: str) -> None:
         max_age=SESSION_COOKIE_MAX_AGE,
         httponly=True,
         samesite="lax",
-        secure=False,  # Set to True in production with HTTPS
+        secure=settings.is_production,
     )
 
 

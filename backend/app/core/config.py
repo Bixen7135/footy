@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     # Rate limiting
     rate_limit_requests: int = 100
     rate_limit_window_seconds: int = 60
+    trust_proxy_headers: bool = False  # Only trust X-Forwarded-For/X-Real-IP when behind known proxy
 
     # Request limits
     max_request_size_bytes: int = 10 * 1024 * 1024  # 10MB

@@ -87,3 +87,8 @@ class ProductVariant(Base, UUIDMixin, TimestampMixin):
 
     # Relationships
     product: Mapped["Product"] = relationship("Product", back_populates="variants")
+
+    # Enable optimistic locking using the version field
+    __mapper_args__ = {
+        "version_id_col": version
+    }

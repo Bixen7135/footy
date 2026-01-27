@@ -6,6 +6,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotFoundError
 from app.models import Product, WishlistItem
 from app.schemas.wishlist import WishlistItemResponse, WishlistResponse
 from app.schemas.product import ProductResponse, ProductVariantResponse, CategoryResponse
@@ -52,7 +53,7 @@ class WishlistService:
         product = product_result.scalar_one_or_none()
 
         if not product:
-            raise ValueError("Product not found")
+            raise NotFoundError("Product", product_id)
 
         # Check if already in wishlist
         existing_query = select(WishlistItem).where(

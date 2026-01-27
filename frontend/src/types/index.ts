@@ -1,4 +1,5 @@
 // Type definitions matching backend Pydantic schemas
+import type { MoneyAmount } from '@/lib/money';
 
 // Base types
 export interface Timestamps {
@@ -79,8 +80,8 @@ export interface Product extends Timestamps {
   name: string;
   slug: string;
   description?: string;
-  price: number;
-  compare_at_price?: number;
+  price: MoneyAmount;
+  compare_at_price?: MoneyAmount;
   images: string[];
   brand?: string;
   material?: string;
@@ -111,8 +112,8 @@ export interface ProductFilters {
   brand?: string;
   color?: string;
   gender?: string;
-  min_price?: number;
-  max_price?: number;
+  min_price?: MoneyAmount;
+  max_price?: MoneyAmount;
   sizes?: string[];
   in_stock?: boolean;
   is_featured?: boolean;
@@ -125,8 +126,8 @@ export interface CartItem extends Timestamps {
   product_id: string;
   variant_id: string;
   quantity: number;
-  unit_price: number;
-  subtotal: number;
+  unit_price: MoneyAmount;
+  subtotal: MoneyAmount;
   product: Product;
   variant: ProductVariant;
 }
@@ -136,7 +137,7 @@ export interface Cart extends Timestamps {
   session_id?: string;
   user_id?: string;
   items: CartItem[];
-  total: number;
+  total: MoneyAmount;
   item_count: number;
 }
 
@@ -178,8 +179,8 @@ export interface OrderItem extends Timestamps {
   product_image?: string;
   size: string;
   quantity: number;
-  unit_price: number;
-  subtotal: number;
+  unit_price: MoneyAmount;
+  subtotal: MoneyAmount;
 }
 
 export interface Order extends Timestamps {
@@ -187,10 +188,10 @@ export interface Order extends Timestamps {
   order_number: string;
   user_id: string;
   status: OrderStatus;
-  subtotal: number;
-  shipping_cost: number;
-  tax: number;
-  total: number;
+  subtotal: MoneyAmount;
+  shipping_cost: MoneyAmount;
+  tax: MoneyAmount;
+  total: MoneyAmount;
   shipping_address: ShippingAddress;
   notes?: string;
   items: OrderItem[];

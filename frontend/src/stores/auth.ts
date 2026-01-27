@@ -6,7 +6,6 @@ import type { User, UserCreate, LoginRequest, Token, AuthResponse } from '@/type
 
 interface AuthState {
   user: User | null;
-  tokens: Token | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   error: string | null;
@@ -15,7 +14,6 @@ interface AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
   register: (userData: UserCreate) => Promise<void>;
   logout: () => void;
-  refreshToken: () => Promise<boolean>;
   fetchCurrentUser: () => Promise<void>;
   clearError: () => void;
 }
@@ -48,7 +46,7 @@ const storeTokens = (tokens: Token) => {
 };
 
 // Clear tokens from localStorage
-const clearTokens = () => {
+export const clearTokens = () => {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
@@ -57,7 +55,6 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      tokens: null,
       isLoading: false,
       isAuthenticated: false,
       error: null,
@@ -72,7 +69,6 @@ export const useAuthStore = create<AuthState>()(
           storeTokens(tokens);
           set({
             user,
-            tokens,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -98,7 +94,6 @@ export const useAuthStore = create<AuthState>()(
           storeTokens(tokens);
           set({
             user,
-            tokens,
             isAuthenticated: true,
             isLoading: false,
             error: null,
@@ -118,30 +113,9 @@ export const useAuthStore = create<AuthState>()(
         clearTokens();
         set({
           user: null,
-          tokens: null,
           isAuthenticated: false,
           error: null,
         });
-      },
-
-      refreshToken: async () => {
-        const { tokens } = get();
-        if (!tokens?.refresh_token) return false;
-
-        try {
-          const response = await api.post<Token>('/auth/refresh', {
-            refresh_token: tokens.refresh_token,
-          });
-          const newTokens = response.data;
-
-          storeTokens(newTokens);
-          set({ tokens: newTokens });
-          return true;
-        } catch (error) {
-          // Refresh failed, logout user
-          get().logout();
-          return false;
-        }
       },
 
       fetchCurrentUser: async () => {
@@ -154,27 +128,21 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
 
         try {
-          const response = await api.get<User>('/auth/me', {
-            headers: {
-              Authorization: `Bearer ${tokens.access_token}`,
-            },
-          });
+          const response = await api.get<User>('/auth/me');
 
           set({
             user: response.data,
-            tokens,
             isAuthenticated: true,
             isLoading: false,
           });
         } catch (error) {
-          // Token invalid or expired, try refresh
-          const refreshed = await get().refreshToken();
-          if (!refreshed) {
-            set({ isLoading: false });
-          } else {
-            // Retry fetch after refresh
-            await get().fetchCurrentUser();
-          }
+          // Token invalid or expired - let API interceptor handle refresh
+          // If refresh fails, interceptor will call logout()
+          set({
+            isLoading: false,
+            isAuthenticated: false,
+            user: null,
+          });
         }
       },
 

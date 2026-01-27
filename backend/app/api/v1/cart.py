@@ -60,10 +60,7 @@ async def add_to_cart(
     session_id = get_or_create_session_id(request, response)
     user_id = None
 
-    try:
-        return await cart_service.add_item(session_id, item, user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await cart_service.add_item(session_id, item, user_id)
 
 
 @router.patch("/items/{variant_id}", response_model=CartResponse)
@@ -86,10 +83,7 @@ async def update_cart_item(
 
     user_id = None
 
-    try:
-        return await cart_service.update_item(session_id, variant_id, update, user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await cart_service.update_item(session_id, variant_id, update, user_id)
 
 
 @router.delete("/items/{variant_id}", response_model=CartResponse)
@@ -110,10 +104,7 @@ async def remove_from_cart(
 
     user_id = None
 
-    try:
-        return await cart_service.remove_item(session_id, variant_id, user_id)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return await cart_service.remove_item(session_id, variant_id, user_id)
 
 
 @router.delete("", status_code=204)

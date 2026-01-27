@@ -67,10 +67,7 @@ async def register(
 
     Rate limit: 3 requests per minute.
     """
-    try:
-        user, tokens = await auth_service.register(user_data)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    user, tokens = await auth_service.register(user_data)
 
     # Get/create session
     session_id = get_or_create_session_id(request, response)
@@ -119,10 +116,7 @@ async def login(
 
     Rate limit: 5 requests per minute.
     """
-    try:
-        user, tokens = await auth_service.login(credentials)
-    except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+    user, tokens = await auth_service.login(credentials)
 
     # Get/create session
     session_id = get_or_create_session_id(request, response)
@@ -165,10 +159,7 @@ async def refresh_token(
 
     Rate limit: 10 requests per minute.
     """
-    try:
-        return await auth_service.refresh_tokens(refresh_data.refresh_token)
-    except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+    return await auth_service.refresh_tokens(refresh_data.refresh_token)
 
 
 @router.get("/me", response_model=UserResponse)
@@ -188,10 +179,7 @@ async def get_current_user(
 
     token = auth_header.split(" ")[1]
 
-    try:
-        user = await auth_service.get_current_user(token)
-    except ValueError as e:
-        raise HTTPException(status_code=401, detail=str(e))
+    user = await auth_service.get_current_user(token)
 
     return UserResponse(
         id=user.id,

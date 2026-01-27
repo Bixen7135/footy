@@ -57,8 +57,10 @@ export default function CartPage() {
   } = useCartStore();
 
   useEffect(() => {
-    fetchCart();
-  }, [fetchCart]);
+    if (!cart) {
+      fetchCart();
+    }
+  }, [fetchCart, cart]);
 
   const handleContinueShopping = () => {
     router.push('/catalog');
@@ -75,7 +77,7 @@ export default function CartPage() {
     );
   }
 
-  const isEmpty = !cart || cart.items.length === 0;
+  const isEmpty = !cart || !cart.items || cart.items.length === 0;
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
