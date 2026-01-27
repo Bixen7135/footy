@@ -23,6 +23,7 @@ __pycache__/
 .coverage
 htmlcov/
 .ruff_cache/
+.venv/
 
 # Environment files
 .env

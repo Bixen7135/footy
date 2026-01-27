@@ -91,11 +91,17 @@ export function CheckoutSummary({
                     flexShrink: 0,
                   }}
                 >
-                  {item.product.images.find((url) => typeof url === 'string' && url.startsWith('http')) ? (
+                  {item.product.images.find(
+                    (url) =>
+                      typeof url === 'string' &&
+                      (url.startsWith('http') || url.startsWith('/'))
+                  ) ? (
                     <Image
                       src={
                         item.product.images.find(
-                          (url) => typeof url === 'string' && url.startsWith('http')
+                          (url) =>
+                            typeof url === 'string' &&
+                            (url.startsWith('http') || url.startsWith('/'))
                         ) as string
                       }
                       alt={item.product.name}

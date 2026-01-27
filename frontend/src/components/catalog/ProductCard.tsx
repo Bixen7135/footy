@@ -33,7 +33,8 @@ export function ProductCard({
   const [imageError, setImageError] = useState(false);
 
   const images = (product.images || []).filter(
-    (url) => typeof url === 'string' && url.startsWith('http')
+    (url) =>
+      typeof url === 'string' && (url.startsWith('http') || url.startsWith('/'))
   );
   const primaryImage = images[0] || '';
   const hoverImage = images[1] || primaryImage;

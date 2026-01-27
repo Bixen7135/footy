@@ -114,7 +114,7 @@ export function ProductDetail({
       : 0;
 
   const formatPrice = (value: number | null) =>
-    value === null || !Number.isFinite(value) ? '—' : value.toFixed(2);
+    value === null || !Number.isFinite(value) ? '--' : value.toFixed(2);
 
   const handleSizeSelect = (size: string) => {
     setSelectedSize(size);
@@ -155,7 +155,8 @@ export function ProductDetail({
   };
 
   const images = (product.images || []).filter(
-    (url) => typeof url === 'string' && url.startsWith('http')
+    (url) =>
+      typeof url === 'string' && (url.startsWith('http') || url.startsWith('/'))
   );
   const hasImages = images.length > 0;
 

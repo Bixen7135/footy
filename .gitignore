@@ -38,6 +38,11 @@ out/
 .coverage
 htmlcov/
 .ruff_cache/
+.venv/
+.backend/.venv/
+backend/source/
+backend/venv/
+backend/venv/bin/activate/
 
 # Docker
 docker-compose.override.yml
@@ -59,7 +64,7 @@ progress.txt
 null
 Untitled-1.md
 SECURITY.md
-backend/README.md
+.backend/README.md
 DOCS/
 .claude/agents/
 .claude/

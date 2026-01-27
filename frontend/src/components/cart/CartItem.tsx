@@ -64,11 +64,12 @@ export function CartItem({
   };
 
   const productImage = (item.product?.images || []).find(
-    (url) => typeof url === 'string' && url.startsWith('http')
+    (url) =>
+      typeof url === 'string' && (url.startsWith('http') || url.startsWith('/'))
   );
   const unitPrice = Number(item.unit_price);
   const subtotal = Number(item.subtotal);
-  const formatPrice = (value: number) => (Number.isFinite(value) ? value.toFixed(2) : '—');
+  const formatPrice = (value: number) => (Number.isFinite(value) ? value.toFixed(2) : '--');
 
   return (
     <Box

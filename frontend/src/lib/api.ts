@@ -4,8 +4,13 @@ import type { Token } from '@/types';
 import { clearTokens } from '@/stores/auth';
 import { convertMoneyFieldsToCents } from './money';
 
-// Default to same-origin so Next rewrites can proxy to the backend in dev.
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+// Base URL strategy
+// - If NEXT_PUBLIC_API_URL is provided, treat it as the backend origin and append /api/v1.
+// - Otherwise default to same-origin /api/v1 so Next rewrites can proxy in dev.
+const RAW_API_ORIGIN = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '');
+const API_BASE_URL = RAW_API_ORIGIN
+  ? (RAW_API_ORIGIN.endsWith('/api/v1') ? RAW_API_ORIGIN : `${RAW_API_ORIGIN}/api/v1`)
+  : '/api/v1';
 
 // Token storage keys (same as auth store)
 const ACCESS_TOKEN_KEY = 'footy_access_token';
