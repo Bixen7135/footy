@@ -52,7 +52,15 @@ class ProductService:
                 query = query.where(Product.color.ilike(f"%{filters.color}%"))
 
             if filters.gender:
-                query = query.where(Product.gender == filters.gender)
+                if filters.gender in ("men", "women"):
+                    query = query.where(
+                        or_(
+                            Product.gender == filters.gender,
+                            Product.gender == "unisex"
+                        )
+                    )
+                else:
+                    query = query.where(Product.gender == filters.gender)
 
             if filters.min_price is not None:
                 query = query.where(Product.price >= filters.min_price)

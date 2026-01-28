@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useCallback, useMemo } from 'react';
+import { Suspense, useState, useCallback, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Container, Box, Badge } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,6 +11,7 @@ import { CatalogHeader } from '@/components/catalog/CatalogHeader';
 import { ActiveFilters } from '@/components/catalog/ActiveFilters';
 import { SortDropdown } from '@/components/catalog/SortDropdown';
 import { ViewModeToggle } from '@/components/catalog/ViewModeToggle';
+import { SearchBar } from '@/components/catalog/SearchBar';
 import type { ProductFilters, Product } from '@/types';
 
 const FILTER_DRAWER_WIDTH = 320;
@@ -42,7 +43,7 @@ function CatalogContent() {
   const [isMobile, setIsMobile] = useState(false);
 
   // Detect mobile on mount
-  useMemo(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       setIsMobile(window.innerWidth < 900);
       const handleResize = () => setIsMobile(window.innerWidth < 900);
@@ -51,8 +52,20 @@ function CatalogContent() {
     }
   }, []);
 
-  // View mode and sort state
-  const viewMode = searchParams.get('view') || (isMobile ? 'grid2' : 'grid4');
+  // View mode and sort state with localStorage persistence
+  const getInitialViewMode = useCallback(() => {
+    if (typeof window === 'undefined') return isMobile ? 'grid2' : 'grid4';
+
+    const urlView = searchParams.get('view');
+    if (urlView) return urlView;
+
+    const savedView = localStorage.getItem('catalog_view_mode');
+    if (savedView) return savedView;
+
+    return isMobile ? 'grid2' : 'grid4';
+  }, [searchParams, isMobile]);
+
+  const viewMode = getInitialViewMode();
   const sortBy = searchParams.get('sort') || 'featured';
 
   const filters: ProductFilters = {
@@ -141,6 +154,9 @@ function CatalogContent() {
 
   const handleViewModeChange = useCallback(
     (mode: string) => {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('catalog_view_mode', mode);
+      }
       const params = new URLSearchParams(searchParams.toString());
       params.set('view', mode);
       router.push(`/catalog?${params.toString()}`);
@@ -152,6 +168,19 @@ function CatalogContent() {
     (sort: string) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set('sort', sort);
+      router.push(`/catalog?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
+  const handleSearchChange = useCallback(
+    (search: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (search) {
+        params.set('search', search);
+      } else {
+        params.delete('search');
+      }
       router.push(`/catalog?${params.toString()}`);
     },
     [router, searchParams]
@@ -371,6 +400,7 @@ function CatalogContent() {
               onViewModeChange={handleViewModeChange}
               onSortChange={handleSortChange}
             >
+              <SearchBar value={filters.search} onChange={handleSearchChange} />
               <SortDropdown value={sortBy} onChange={handleSortChange} />
               <ViewModeToggle value={viewMode} onChange={handleViewModeChange} />
             </CatalogHeader>

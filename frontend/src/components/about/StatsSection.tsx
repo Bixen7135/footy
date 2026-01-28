@@ -1,11 +1,12 @@
 'use client';
 
-import { Box, Container, Typography, Grid } from '@mui/material';
+import { Box, Container, Typography, Grid, Skeleton } from '@mui/material';
 import { motion, useInView } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { useCountingAnimation } from '@/hooks/useCountingAnimation';
 import { useGlitchEffect } from '@/hooks/useGlitchEffect';
 import { keyframes } from '@mui/system';
+import type { Statistics } from '@/lib/queries';
 
 const MotionBox = motion(Box);
 
@@ -15,12 +16,10 @@ interface Stat {
   label: string;
 }
 
-const STATS: Stat[] = [
-  { value: 50, suffix: 'K+', label: 'Happy Customers' },
-  { value: 500, suffix: '+', label: 'Products' },
-  { value: 30, suffix: '+', label: 'Top Brands' },
-  { value: 4.9, suffix: '', label: 'Customer Rating' },
-];
+interface StatsSectionProps {
+  stats?: Statistics;
+  isLoading?: boolean;
+}
 
 const glowPulse = keyframes`
   0%, 100% {
@@ -96,7 +95,21 @@ function StatCard({ stat, index }: { stat: Stat; index: number }) {
   );
 }
 
-export default function StatsSection() {
+export default function StatsSection({ stats, isLoading }: StatsSectionProps) {
+  const displayStats: Stat[] = stats
+    ? [
+        { value: Math.floor(stats.total_customers / 1000), suffix: 'K+', label: 'Happy Customers' },
+        { value: stats.total_products, suffix: '+', label: 'Products' },
+        { value: stats.total_brands, suffix: '+', label: 'Top Brands' },
+        { value: stats.customer_rating, suffix: '', label: 'Customer Rating' },
+      ]
+    : [
+        { value: 50, suffix: 'K+', label: 'Happy Customers' },
+        { value: 500, suffix: '+', label: 'Products' },
+        { value: 30, suffix: '+', label: 'Top Brands' },
+        { value: 4.9, suffix: '', label: 'Customer Rating' },
+      ];
+
   return (
     <Box
       sx={{
@@ -123,9 +136,32 @@ export default function StatsSection() {
             </Typography>
           </Grid>
 
-          {STATS.map((stat, index) => (
-            <StatCard key={stat.label} stat={stat} index={index} />
-          ))}
+          {isLoading ? (
+            <>
+              {[...Array(4)].map((_, index) => (
+                <Grid item xs={6} md={3} key={index}>
+                  <Box sx={{ textAlign: 'center', py: 2 }}>
+                    <Skeleton
+                      variant="text"
+                      width={120}
+                      height={80}
+                      sx={{ mx: 'auto', bgcolor: 'rgba(255,255,255,0.1)' }}
+                    />
+                    <Skeleton
+                      variant="text"
+                      width={100}
+                      height={24}
+                      sx={{ mx: 'auto', bgcolor: 'rgba(255,255,255,0.1)' }}
+                    />
+                  </Box>
+                </Grid>
+              ))}
+            </>
+          ) : (
+            displayStats.map((stat, index) => (
+              <StatCard key={stat.label} stat={stat} index={index} />
+            ))
+          )}
         </Grid>
       </Container>
 

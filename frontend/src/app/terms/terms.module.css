@@ -1,0 +1,299 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600;700&family=Nunito+Sans:wght@300;400;600;700;800&display=swap');
+
+.progressBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8B4513 0%, #D2691E 100%);
+  z-index: 9999;
+  transform-origin: 0%;
+}
+
+.hero {
+  background: linear-gradient(135deg, #1A1A1A 0%, #2D2D2D 100%);
+  color: white;
+  padding: 120px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(139, 69, 19, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(210, 105, 30, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.eyebrow {
+  font-family: 'Nunito Sans', sans-serif !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.15em !important;
+  text-transform: uppercase !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  margin-bottom: 16px !important;
+  display: block;
+}
+
+.heroTitle {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 5rem !important;
+  font-weight: 600 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.02em !important;
+  margin-bottom: 24px !important;
+  color: white !important;
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 3rem !important;
+  }
+}
+
+.heroSubtitle {
+  font-family: 'Nunito Sans', sans-serif !important;
+  font-size: 1.25rem !important;
+  font-weight: 300 !important;
+  line-height: 1.6 !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  max-width: 600px;
+}
+
+.container {
+  padding: 80px 24px !important;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 80px;
+  position: relative;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+.toc {
+  position: sticky;
+  top: 120px;
+  height: fit-content;
+  padding: 32px;
+  background: rgba(139, 69, 19, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(139, 69, 19, 0.1);
+}
+
+@media (max-width: 1024px) {
+  .toc {
+    position: static;
+    background: rgba(139, 69, 19, 0.05);
+  }
+}
+
+.toc a {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 12px 0;
+  text-decoration: none;
+  color: #2D2D2D;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 2px solid transparent;
+  padding-left: 16px;
+  margin-left: -16px;
+}
+
+.toc a:hover {
+  color: #8B4513;
+  border-left-color: #D2691E;
+}
+
+.toc a.active {
+  color: #8B4513;
+  font-weight: 700;
+  border-left-color: #8B4513;
+}
+
+.tocNumber {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #D2691E;
+  min-width: 28px;
+}
+
+.tocTitle {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.main {
+  max-width: 720px;
+}
+
+.section {
+  position: relative;
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 40px;
+  margin-bottom: 80px;
+  scroll-margin-top: 100px;
+}
+
+@media (max-width: 768px) {
+  .section {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.sectionNumber {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 4rem;
+  font-weight: 300;
+  line-height: 1;
+  color: rgba(139, 69, 19, 0.15);
+  position: sticky;
+  top: 120px;
+  height: fit-content;
+  user-select: none;
+}
+
+@media (max-width: 768px) {
+  .sectionNumber {
+    position: static;
+    font-size: 3rem;
+  }
+}
+
+.sectionContent {
+  padding-top: 8px;
+}
+
+.sectionTitle {
+  font-family: 'Cormorant Garamond', serif !important;
+  font-size: 2.5rem !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  color: #1A1A1A !important;
+  margin-bottom: 32px !important;
+  letter-spacing: -0.01em !important;
+}
+
+.sectionBody {
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: #2D2D2D;
+}
+
+.sectionBody p {
+  margin-bottom: 24px;
+}
+
+.sectionBody h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-top: 40px;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.sectionBody ul {
+  margin: 24px 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.sectionBody li {
+  position: relative;
+  padding-left: 32px;
+  margin-bottom: 16px;
+}
+
+.sectionBody li::before {
+  content: '§';
+  position: absolute;
+  left: 0;
+  color: #D2691E;
+  font-weight: 700;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.25rem;
+}
+
+.sectionBody strong {
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.sectionBody a {
+  color: #8B4513;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(139, 69, 19, 0.3);
+  transition: all 0.2s ease;
+}
+
+.sectionBody a:hover {
+  color: #D2691E;
+  border-bottom-color: #D2691E;
+}
+
+.highlight {
+  font-family: 'Nunito Sans', sans-serif !important;
+  font-size: 0.9375rem !important;
+  font-weight: 600 !important;
+  line-height: 1.6 !important;
+  color: #8B4513 !important;
+  padding: 20px 28px !important;
+  margin: 32px 0 !important;
+  background: rgba(139, 69, 19, 0.05);
+  border-radius: 8px;
+  border-left: 3px solid #D2691E;
+}
+
+.callout {
+  font-family: 'Nunito Sans', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  line-height: 1.7 !important;
+  color: #1A1A1A !important;
+  padding: 24px 32px !important;
+  margin: 40px 0 !important;
+  background: #F5F5F0;
+  border-radius: 12px;
+  border: 1px solid rgba(139, 69, 19, 0.15);
+  position: relative;
+}
+
+.callout::before {
+  content: '⚠';
+  position: absolute;
+  left: 32px;
+  top: -12px;
+  font-size: 1.5rem;
+  background: #F5F5F0;
+  padding: 0 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

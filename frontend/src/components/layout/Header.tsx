@@ -273,7 +273,7 @@ export function Header() {
                   },
                 }}
               >
-                <SearchIcon />
+                <SearchIcon sx={{ color: isDark ? '#fff' : '#181818' }} />
               </IconButton>
 
               {isAuthenticated ? (
@@ -430,7 +430,7 @@ export function Header() {
                     },
                   }}
                 >
-                  <ShoppingCartOutlinedIcon />
+                  <ShoppingCartOutlinedIcon sx={{ color: isDark ? '#fff' : '#181818' }} />
                 </Badge>
               </IconButton>
             </Box>

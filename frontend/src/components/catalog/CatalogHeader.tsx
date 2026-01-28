@@ -18,8 +18,6 @@ interface CatalogHeaderProps {
   children?: React.ReactNode;
 }
 
-const MotionBox = motion(Box);
-
 export function CatalogHeader({
   category,
   resultsCount,
@@ -54,7 +52,8 @@ export function CatalogHeader({
     : 'Loading...';
 
   return (
-    <MotionBox
+    <Box
+      component={motion.div}
       variants={containerVariants}
       initial="hidden"
       animate="show"
@@ -140,7 +139,7 @@ export function CatalogHeader({
 
         {/* Controls - rendered by parent */}
         {!isMobile && children && (
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} alignItems="center" sx={{ flexWrap: 'wrap' }}>
             {children}
           </Stack>
         )}
@@ -148,10 +147,10 @@ export function CatalogHeader({
 
       {/* Mobile controls */}
       {isMobile && children && (
-        <Stack direction="row" spacing={2} sx={{ mt: 2, flexWrap: 'wrap' }}>
+        <Stack direction="row" spacing={2} sx={{ mt: 2, flexWrap: 'wrap', gap: 1 }}>
           {children}
         </Stack>
       )}
-    </MotionBox>
+    </Box>
   );
 }

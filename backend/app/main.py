@@ -19,7 +19,7 @@ from app.core.exception_handlers import (
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 from app.core.security_headers import SecurityHeadersMiddleware
 from app.core.request_limits import RequestSizeLimitMiddleware
-from app.api.v1 import health, products, categories, cart, auth, orders, users, wishlist, events
+from app.api.v1 import health, products, categories, cart, auth, orders, users, wishlist, events, statistics
 from app.api.v1.admin import router as admin_router
 
 logger = get_logger(__name__)
@@ -62,6 +62,7 @@ app = FastAPI(
         {"name": "users", "description": "User profile endpoints"},
         {"name": "wishlist", "description": "Wishlist endpoints"},
         {"name": "events", "description": "Clickstream event endpoints"},
+        {"name": "statistics", "description": "Platform statistics endpoints"},
         {"name": "admin", "description": "Admin endpoints"},
     ],
 )
@@ -114,6 +115,7 @@ app.include_router(orders.router, prefix=settings.api_v1_prefix)
 app.include_router(users.router, prefix=settings.api_v1_prefix)
 app.include_router(wishlist.router, prefix=settings.api_v1_prefix)
 app.include_router(events.router, prefix=settings.api_v1_prefix)
+app.include_router(statistics.router, prefix=settings.api_v1_prefix)
 app.include_router(admin_router, prefix=settings.api_v1_prefix)
 
 

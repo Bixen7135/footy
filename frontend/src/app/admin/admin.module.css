@@ -1,0 +1,260 @@
+/* Admin Dashboard Custom Styles */
+
+/* Custom Scrollbar for Admin */
+.admin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: #0a0a0a;
+  border-left: 1px solid rgba(158, 255, 0, 0.2);
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(158, 255, 0, 0.3);
+  border: 1px solid rgba(158, 255, 0, 0.5);
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(158, 255, 0, 0.5);
+  box-shadow: 0 0 8px rgba(158, 255, 0, 0.6);
+}
+
+/* Glitch effect for critical alerts */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+.admin-glitch {
+  animation: glitch 0.3s infinite;
+}
+
+/* Scanline effect */
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.admin-scanline::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(158, 255, 0, 0.6),
+    transparent
+  );
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Terminal cursor blink */
+@keyframes blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0;
+  }
+}
+
+.admin-cursor {
+  animation: blink 1s step-end infinite;
+}
+
+/* Grid flicker effect */
+@keyframes grid-flicker {
+  0%, 100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.admin-grid-flicker {
+  animation: grid-flicker 4s ease-in-out infinite;
+}
+
+/* Data stream effect */
+@keyframes data-stream {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  90% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.admin-data-stream {
+  animation: data-stream 3s ease-in-out infinite;
+}
+
+/* Neon glow pulse */
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(158, 255, 0, 0.5),
+                0 0 10px rgba(158, 255, 0, 0.3),
+                0 0 15px rgba(158, 255, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(158, 255, 0, 0.8),
+                0 0 20px rgba(158, 255, 0, 0.5),
+                0 0 30px rgba(158, 255, 0, 0.3);
+  }
+}
+
+.admin-neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}
+
+/* Typography effects */
+.admin-mono {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.05em;
+}
+
+.admin-glitch-text {
+  position: relative;
+}
+
+.admin-glitch-text::before,
+.admin-glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.admin-glitch-text::before {
+  left: 2px;
+  text-shadow: -2px 0 #ff00de;
+  clip: rect(24px, 550px, 90px, 0);
+  animation: glitch-anim 3s infinite linear alternate-reverse;
+}
+
+.admin-glitch-text::after {
+  left: -2px;
+  text-shadow: -2px 0 #00fff9;
+  clip: rect(85px, 550px, 140px, 0);
+  animation: glitch-anim 2s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+  0% {
+    clip: rect(58px, 9999px, 70px, 0);
+  }
+  20% {
+    clip: rect(21px, 9999px, 112px, 0);
+  }
+  40% {
+    clip: rect(84px, 9999px, 31px, 0);
+  }
+  60% {
+    clip: rect(43px, 9999px, 96px, 0);
+  }
+  80% {
+    clip: rect(12px, 9999px, 59px, 0);
+  }
+  100% {
+    clip: rect(77px, 9999px, 23px, 0);
+  }
+}
+
+/* Loading state */
+.admin-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(158, 255, 0, 0.2),
+    transparent
+  );
+  animation: loading-sweep 1.5s infinite;
+}
+
+@keyframes loading-sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Status indicators */
+.admin-status-active {
+  position: relative;
+}
+
+.admin-status-active::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: #9EFF00;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #9EFF00;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-50%) scale(1.2);
+  }
+}

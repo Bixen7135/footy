@@ -7,6 +7,8 @@ services:
       POSTGRES_USER: footy
       POSTGRES_PASSWORD: footy
       POSTGRES_DB: footy
+      POSTGRES_INITDB_ARGS: "--locale=C"
+      LC_ALL: C
     ports:
       - "5432:5432"
     volumes:
@@ -89,12 +91,13 @@ services:
       dockerfile: Dockerfile
       target: dev
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_API_URL: http://backend:8000
     container_name: footy-frontend
     working_dir: /app
     user: root
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_API_URL: http://backend:8000
+      API_URL: http://backend:8000
       NODE_ENV: development
       NEXT_TELEMETRY_DISABLED: "1"
     ports:

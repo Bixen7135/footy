@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode, useMemo, useEffect } from 'react';
-import { Inter } from 'next/font/google';
+import { Work_Sans, Archivo_Black } from 'next/font/google';
 import localFont from 'next/font/local';
 import { ThemeProvider, createTheme, ThemeOptions } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -43,19 +43,34 @@ const satoshi = localFont({
   display: 'swap',
 });
 
-// Inter font for body text
-const inter = Inter({
+// Work Sans for body text - clean, geometric, slightly editorial
+const workSans = Work_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-inter',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-work-sans',
   display: 'swap',
 });
+
+// Archivo Black for ultra-bold display
+const archivoBlack = Archivo_Black({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-archivo-black',
+  display: 'swap',
+});
+
+// Display font stack for hero headlines (Archivo Black)
+const displayFontStack = [
+  archivoBlack.style.fontFamily,
+  'Impact',
+  'Arial Black',
+  'sans-serif',
+].join(',');
 
 // Shared heading font stack (Satoshi with fallbacks)
 const headingFontStack = [
   satoshi.style.fontFamily || satoshi.variable,
-  '-apple-system',
-  'BlinkMacSystemFont',
+  workSans.style.fontFamily,
   'system-ui',
   'sans-serif',
 ].join(',');
@@ -127,9 +142,7 @@ const getBaseTheme = (mode: 'light' | 'dark'): ThemeOptions => {
     },
     typography: {
       fontFamily: [
-        inter.style.fontFamily,
-        '-apple-system',
-        'BlinkMacSystemFont',
+        workSans.style.fontFamily,
         'system-ui',
         'sans-serif',
       ].join(','),
@@ -174,26 +187,26 @@ const getBaseTheme = (mode: 'light' | 'dark'): ThemeOptions => {
         lineHeight: 1.5,
       },
       body1: {
-        fontFamily: inter.style.fontFamily,
+        fontFamily: workSans.style.fontFamily,
         fontWeight: 400,
         fontSize: '1rem', // 16px
         lineHeight: 1.6,
       },
       body2: {
-        fontFamily: inter.style.fontFamily,
+        fontFamily: workSans.style.fontFamily,
         fontWeight: 400,
         fontSize: '0.875rem', // 14px
         lineHeight: 1.5,
       },
       button: {
-        fontFamily: inter.style.fontFamily,
+        fontFamily: workSans.style.fontFamily,
         fontWeight: 600,
         fontSize: '1rem',
         textTransform: 'none',
         letterSpacing: '0.01em',
       },
       caption: {
-        fontFamily: inter.style.fontFamily,
+        fontFamily: workSans.style.fontFamily,
         fontWeight: 400,
         fontSize: '0.75rem', // 12px
         lineHeight: 1.4,
@@ -436,7 +449,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <html lang="en" className={`${satoshi.variable} ${inter.variable}`}>
+    <html lang="en" className={`${satoshi.variable} ${workSans.variable} ${archivoBlack.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Footy - Premium Footwear Store</title>
@@ -444,11 +457,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <style jsx global>{`
           :root {
             --font-satoshi: ${satoshi.style.fontFamily};
-            --font-inter: ${inter.style.fontFamily};
+            --font-work-sans: ${workSans.style.fontFamily};
+            --font-archivo-black: ${archivoBlack.style.fontFamily};
           }
         `}</style>
       </head>
-      <body className={inter.className}>
+      <body className={workSans.className}>
         <QueryClientProvider client={queryClient}>
           <ThemeWrapper>
             <Box

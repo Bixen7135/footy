@@ -7,14 +7,22 @@ import ValuesGrid from '@/components/about/ValuesGrid';
 import StatsSection from '@/components/about/StatsSection';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { useStatistics } from '@/lib/queries';
 
 const MotionBox = motion(Box);
 
 export default function AboutPage() {
-  const heroStats = [
-    { value: '50K+', label: 'Happy Customers' },
-    { value: '4.9', label: 'Customer Rating' },
-  ];
+  const { data: stats, isLoading } = useStatistics();
+
+  const heroStats = stats
+    ? [
+        { value: `${Math.floor(stats.total_customers / 1000)}K+`, label: 'Happy Customers' },
+        { value: stats.customer_rating.toFixed(1), label: 'Customer Rating' },
+      ]
+    : [
+        { value: '...', label: 'Happy Customers' },
+        { value: '...', label: 'Customer Rating' },
+      ];
 
   return (
     <Box>
@@ -28,7 +36,7 @@ export default function AboutPage() {
       <ValuesGrid />
 
       {/* Stats Section */}
-      <StatsSection />
+      <StatsSection stats={stats} isLoading={isLoading} />
 
       {/* CTA Section - Join Our Journey */}
       <Box

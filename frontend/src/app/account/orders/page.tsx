@@ -19,7 +19,9 @@ import {
   Alert,
   Pagination,
 } from '@mui/material';
+import { motion } from 'framer-motion';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { api } from '@/lib/api';
 import { useAuthStore, initializeAuth, getAccessToken } from '@/stores/auth';
 import type { Order, OrderListResponse, OrderStatus } from '@/types';
@@ -134,107 +136,368 @@ function OrdersContent() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" fontWeight={700} gutterBottom>
-        Order History
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        View and track your orders
-      </Typography>
-
-      {orders.length === 0 ? (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 6,
-            textAlign: 'center',
-            border: 1,
-            borderColor: 'divider',
-          }}
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 200px)',
+        bgcolor: (theme) => (theme.palette.mode === 'light' ? '#FAFAF7' : '#0a0a0a'),
+        py: { xs: 4, md: 6 },
+      }}
+    >
+      <Container maxWidth="xl">
+        {/* Page Header - Brutalist */}
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          sx={{ mb: { xs: 4, md: 6 } }}
         >
-          <ReceiptLongIcon
-            sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }}
-          />
-          <Typography variant="h6" fontWeight={600} gutterBottom>
-            No orders yet
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            When you place an order, it will appear here.
-          </Typography>
-          <Button component={Link} href="/catalog" variant="contained">
-            Start Shopping
-          </Button>
-        </Paper>
-      ) : (
-        <>
-          <TableContainer
-            component={Paper}
-            elevation={0}
-            sx={{ border: 1, borderColor: 'divider' }}
+          <Typography
+            component="h1"
+            sx={{
+              fontFamily: 'var(--font-archivo-black)',
+              fontSize: { xs: '3rem', md: '5rem', lg: '6rem' },
+              fontWeight: 400,
+              textTransform: 'uppercase',
+              lineHeight: 0.85,
+              letterSpacing: '-0.02em',
+              color: 'text.primary',
+              mb: 2,
+            }}
           >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Order</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Items</TableCell>
-                  <TableCell align="right">Total</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {orders.map((order) => (
-                  <TableRow key={order.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight={600}>
-                        {order.order_number}
+            ORDER
+            <Box
+              component="span"
+              sx={{
+                display: 'block',
+                color: 'secondary.main',
+                WebkitTextStroke: { xs: '1px', md: '2px' },
+                WebkitTextStrokeColor: (theme) => theme.palette.mode === 'light' ? '#000' : '#9EFF00',
+                paintOrder: 'stroke fill',
+              }}
+            >
+              HISTORY
+            </Box>
+          </Typography>
+          <Typography
+            sx={{
+              fontSize: { xs: '1rem', md: '1.2rem' },
+              color: 'text.secondary',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}
+          >
+            Track your purchases
+          </Typography>
+        </Box>
+
+        {orders.length === 0 ? (
+          <Box
+            component={motion.div}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            sx={{
+              p: { xs: 4, md: 8 },
+              textAlign: 'center',
+              bgcolor: 'background.paper',
+              border: '3px solid',
+              borderColor: (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+              boxShadow: '8px 8px 0px rgba(158, 255, 0, 0.3)',
+            }}
+          >
+            <ReceiptLongIcon
+              sx={{
+                fontSize: { xs: 80, md: 100 },
+                color: 'text.secondary',
+                mb: 3,
+                opacity: 0.5,
+              }}
+            />
+            <Typography
+              sx={{
+                fontFamily: 'var(--font-archivo-black)',
+                fontSize: { xs: '2rem', md: '3rem' },
+                textTransform: 'uppercase',
+                mb: 2,
+                lineHeight: 1,
+              }}
+            >
+              NO ORDERS YET
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: { xs: '1rem', md: '1.1rem' },
+                color: 'text.secondary',
+                mb: 4,
+                fontWeight: 600,
+              }}
+            >
+              When you place an order, it will appear here.
+            </Typography>
+            <Button
+              component={Link}
+              href="/catalog"
+              endIcon={<ArrowForwardIcon />}
+              sx={{
+                bgcolor: 'secondary.main',
+                color: '#000',
+                px: 5,
+                py: 2,
+                fontSize: '1rem',
+                fontWeight: 900,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                border: '3px solid',
+                borderColor: 'secondary.main',
+                boxShadow: '6px 6px 0px rgba(0, 0, 0, 0.3)',
+                '&:hover': {
+                  bgcolor: '#B8FF33',
+                  transform: 'translate(-2px, -2px)',
+                  boxShadow: '8px 8px 0px rgba(0, 0, 0, 0.4)',
+                },
+              }}
+            >
+              Start Shopping
+            </Button>
+          </Box>
+        ) : (
+          <>
+            {/* Orders Grid - Card-based */}
+            <Box
+              component={motion.div}
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: { opacity: 0 },
+                show: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.08,
+                  },
+                },
+              }}
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+                gap: 3,
+              }}
+            >
+              {orders.map((order, index) => (
+                <Box
+                  key={order.id}
+                  component={motion.div}
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    show: {
+                      opacity: 1,
+                      y: 0,
+                      transition: {
+                        duration: 0.5,
+                        ease: [0.16, 1, 0.3, 1],
+                        delay: index * 0.05,
+                      },
+                    },
+                  }}
+                  sx={{
+                    p: 3,
+                    bgcolor: 'background.paper',
+                    border: '3px solid',
+                    borderColor: (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+                    boxShadow: '6px 6px 0px rgba(0, 0, 0, 0.2)',
+                    transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '6px',
+                      bgcolor: order.status === 'delivered' ? 'secondary.main' : order.status === 'cancelled' ? 'error.main' : 'primary.main',
+                    },
+                    '&:hover': {
+                      transform: 'translate(-2px, -2px)',
+                      boxShadow: '8px 8px 0px rgba(158, 255, 0, 0.4)',
+                    },
+                  }}
+                >
+                  {/* Order Number & Date */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          color: 'text.secondary',
+                          mb: 0.5,
+                        }}
+                      >
+                        Order
                       </Typography>
-                    </TableCell>
-                    <TableCell>{formatDate(order.created_at)}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={STATUS_LABELS[order.status]}
-                        color={STATUS_COLORS[order.status]}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography fontWeight={600}>
+                      <Typography
+                        sx={{
+                          fontFamily: 'var(--font-satoshi)',
+                          fontSize: '1.1rem',
+                          fontWeight: 800,
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
+                        #{order.order_number}
+                      </Typography>
+                    </Box>
+                    <Box
+                      sx={{
+                        px: 2,
+                        py: 0.75,
+                        bgcolor: order.status === 'delivered' ? 'secondary.main' : order.status === 'cancelled' ? 'error.main' : (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+                        color: order.status === 'delivered' ? '#000' : order.status === 'cancelled' ? '#fff' : (theme) => theme.palette.mode === 'light' ? '#fff' : '#000',
+                        fontSize: '0.7rem',
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em',
+                        border: '2px solid',
+                        borderColor: order.status === 'delivered' ? 'secondary.main' : order.status === 'cancelled' ? 'error.main' : (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+                      }}
+                    >
+                      {STATUS_LABELS[order.status]}
+                    </Box>
+                  </Box>
+
+                  {/* Date & Items */}
+                  <Box sx={{ display: 'flex', gap: 4, mb: 3 }}>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          color: 'text.secondary',
+                          mb: 0.5,
+                        }}
+                      >
+                        Date
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.9rem', fontWeight: 600 }}>
+                        {formatDate(order.created_at)}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          color: 'text.secondary',
+                          mb: 0.5,
+                        }}
+                      >
+                        Items
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.9rem', fontWeight: 600 }}>
+                        {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Total & Action */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 2 }}>
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontSize: '0.65rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          color: 'text.secondary',
+                          mb: 0.5,
+                        }}
+                      >
+                        Total
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontFamily: 'var(--font-archivo-black)',
+                          fontSize: '1.8rem',
+                          fontWeight: 400,
+                          lineHeight: 1,
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
                         {formatPrice(Number(order.total))}
                       </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Button
-                        component={Link}
-                        href={`/account/orders/${order.id}`}
-                        size="small"
-                      >
-                        View Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          {totalPages > 1 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
-                color="primary"
-              />
+                    </Box>
+                    <Button
+                      component={Link}
+                      href={`/account/orders/${order.id}`}
+                      endIcon={<ArrowForwardIcon />}
+                      sx={{
+                        bgcolor: 'transparent',
+                        color: 'text.primary',
+                        px: 3,
+                        py: 1.25,
+                        fontSize: '0.8rem',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        border: '3px solid',
+                        borderColor: (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+                        '&:hover': {
+                          bgcolor: 'secondary.main',
+                          color: '#000',
+                          borderColor: 'secondary.main',
+                          transform: 'translate(-2px, -2px)',
+                          boxShadow: '4px 4px 0px rgba(158, 255, 0, 0.8)',
+                        },
+                      }}
+                    >
+                      View
+                    </Button>
+                  </Box>
+                </Box>
+              ))}
             </Box>
-          )}
-        </>
-      )}
-    </Container>
+
+            {totalPages > 1 && (
+              <Box
+                component={motion.div}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}
+              >
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(_, value) => setPage(value)}
+                  size="large"
+                  sx={{
+                    '& .MuiPaginationItem-root': {
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                      border: '2px solid',
+                      borderColor: 'divider',
+                      '&.Mui-selected': {
+                        bgcolor: 'secondary.main',
+                        color: '#000',
+                        borderColor: 'secondary.main',
+                        fontWeight: 900,
+                      },
+                    },
+                  }}
+                />
+              </Box>
+            )}
+          </>
+        )}
+      </Container>
+    </Box>
   );
 }
 

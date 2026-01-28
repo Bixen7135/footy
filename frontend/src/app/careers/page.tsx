@@ -11,30 +11,35 @@ const MotionBox = motion(Box);
 
 const OPEN_POSITIONS = [
   {
+    slug: 'senior-frontend-engineer',
     title: 'Senior Frontend Engineer',
     department: 'Engineering',
     location: 'Remote',
     type: 'Full-time',
   },
   {
+    slug: 'product-manager',
     title: 'Product Manager',
     department: 'Product',
     location: 'New York, NY',
     type: 'Full-time',
   },
   {
+    slug: 'customer-support-specialist',
     title: 'Customer Support Specialist',
     department: 'Support',
     location: 'Remote',
     type: 'Full-time',
   },
   {
+    slug: 'marketing-coordinator',
     title: 'Marketing Coordinator',
     department: 'Marketing',
     location: 'New York, NY',
     type: 'Full-time',
   },
   {
+    slug: 'warehouse-associate',
     title: 'Warehouse Associate',
     department: 'Operations',
     location: 'Newark, NJ',

@@ -4,10 +4,12 @@ import { Box, Typography, Chip, Button } from '@mui/material';
 import { motion } from 'framer-motion';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import { useState } from 'react';
+import Link from 'next/link';
 
 const MotionBox = motion(Box);
 
 interface JobListing {
+  slug: string;
   title: string;
   department: string;
   location: string;
@@ -118,23 +120,22 @@ export default function JobListingCard({ job, index }: JobListingCardProps) {
         sx={{ position: 'relative', zIndex: 2 }}
       >
         <Button
+          component={Link}
+          href={`/careers/positions/${job.slug}`}
           variant="outlined"
           size="small"
-          disabled
           sx={{
             borderColor: 'secondary.main',
             color: 'secondary.main',
             fontWeight: 600,
             minWidth: 120,
             transition: 'all 0.3s ease',
-            opacity: 0.5,
             '&:hover': {
               bgcolor: 'secondary.main',
               color: 'secondary.contrastText',
               borderColor: 'secondary.main',
             },
           }}
-          title="Job details coming soon"
         >
           View Details →
         </Button>

@@ -12,8 +12,6 @@ interface ActiveFiltersProps {
   onClearAll: () => void;
 }
 
-const MotionChip = motion(Chip);
-
 export function ActiveFilters({
   filters,
   categories = [],
@@ -169,11 +167,12 @@ export function ActiveFilters({
           >
             <AnimatePresence mode="popLayout">
               {activeFilters.map((filter) => (
-                <MotionChip
+                <Chip
                   key={filter.key}
                   label={filter.label}
                   onDelete={() => onFilterRemove(filter.filterType, filter.value)}
                   size="medium"
+                  component={motion.div}
                   variants={chipVariants}
                   initial="hidden"
                   animate="show"

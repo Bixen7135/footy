@@ -9,14 +9,11 @@ import {
   IconButton,
   Divider,
   useTheme,
-  TextField,
-  Button,
 } from '@mui/material';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import TwitterIcon from '@mui/icons-material/Twitter';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import YouTubeIcon from '@mui/icons-material/YouTube';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import SecurityOutlinedIcon from '@mui/icons-material/SecurityOutlined';
 import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
@@ -55,8 +52,8 @@ export function Footer() {
     <Box
       component="footer"
       sx={{
-        bgcolor: isDark ? '#0a0a0a' : '#181818',
-        color: isDark ? '#b3b3b3' : '#b3b3b3',
+        bgcolor: isDark ? '#0a0a0a' : '#fafaf7',
+        color: isDark ? '#b3b3b3' : '#666',
         position: 'relative',
         overflow: 'hidden',
         '&::before': {
@@ -135,7 +132,7 @@ export function Footer() {
                         variant="subtitle1"
                         fontWeight={700}
                         sx={{
-                          color: '#fff',
+                          color: isDark ? '#fff' : '#181818',
                           mb: 0.5,
                           textTransform: 'uppercase',
                           letterSpacing: '0.05em',
@@ -144,7 +141,7 @@ export function Footer() {
                       >
                         {badge.label}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#999', fontSize: '0.85rem' }}>
+                      <Typography variant="body2" sx={{ color: isDark ? '#999' : '#666', fontSize: '0.85rem' }}>
                         {badge.detail}
                       </Typography>
                     </Box>
@@ -192,88 +189,13 @@ export function Footer() {
                 mb: 4,
                 mt: 4,
                 maxWidth: 380,
-                color: '#b3b3b3',
+                color: isDark ? '#b3b3b3' : '#666',
                 lineHeight: 1.7,
                 fontSize: '1rem',
               }}
             >
               Premium footwear engineered for performance and style. Every step matters.
             </Typography>
-
-            {/* Newsletter */}
-            <Box sx={{ mb: 4 }}>
-              <Typography
-                variant="h6"
-                fontWeight={700}
-                sx={{
-                  color: '#fff',
-                  mb: 2,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  fontSize: '0.9rem',
-                }}
-              >
-                Join The Movement
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: { xs: 'column', sm: 'row' } }}>
-                <TextField
-                  placeholder="Enter your email"
-                  size="small"
-                  sx={{
-                    flex: 1,
-                    '& .MuiOutlinedInput-root': {
-                      bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.05)',
-                      borderRadius: '12px',
-                      color: '#fff',
-                      border: `1.5px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.1)'}`,
-                      '& fieldset': {
-                        border: 'none',
-                      },
-                      '&:hover': {
-                        borderColor: theme.palette.secondary.main,
-                      },
-                      '&.Mui-focused': {
-                        borderColor: theme.palette.secondary.main,
-                        bgcolor: isDark ? 'rgba(158, 255, 0, 0.03)' : 'rgba(158, 255, 0, 0.05)',
-                      },
-                    },
-                    '& .MuiOutlinedInput-input': {
-                      py: 1.5,
-                      px: 2,
-                      '&::placeholder': {
-                        color: '#666',
-                        opacity: 1,
-                      },
-                    },
-                  }}
-                />
-                <Button
-                  variant="contained"
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{
-                    bgcolor: theme.palette.secondary.main,
-                    color: '#181818',
-                    borderRadius: '12px',
-                    px: 3,
-                    py: 1.5,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    fontSize: '0.85rem',
-                    whiteSpace: 'nowrap',
-                    boxShadow: `0 4px 16px ${isDark ? 'rgba(158, 255, 0, 0.2)' : 'rgba(158, 255, 0, 0.3)'}`,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      bgcolor: theme.palette.secondary.dark,
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 6px 24px ${isDark ? 'rgba(158, 255, 0, 0.3)' : 'rgba(158, 255, 0, 0.4)'}`,
-                    },
-                  }}
-                >
-                  Subscribe
-                </Button>
-              </Box>
-            </Box>
 
             {/* Social icons */}
             <Box sx={{ display: 'flex', gap: 1.5, mt: 4 }}>
@@ -285,7 +207,7 @@ export function Footer() {
                     height: 48,
                     border: `1.5px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.1)'}`,
                     borderRadius: '12px',
-                    color: '#999',
+                    color: isDark ? '#999' : '#666',
                     transition: 'all 0.3s ease',
                     '&:hover': {
                       borderColor: theme.palette.secondary.main,
@@ -311,7 +233,7 @@ export function Footer() {
                   variant="h6"
                   fontWeight={700}
                   sx={{
-                    color: '#fff',
+                    color: isDark ? '#fff' : '#181818',
                     mb: 3,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
@@ -329,7 +251,7 @@ export function Footer() {
                     sx={{
                       display: 'block',
                       mb: 2,
-                      color: '#999',
+                      color: isDark ? '#999' : '#666',
                       textDecoration: 'none',
                       fontSize: '0.95rem',
                       position: 'relative',
@@ -365,7 +287,7 @@ export function Footer() {
                   variant="h6"
                   fontWeight={700}
                   sx={{
-                    color: '#fff',
+                    color: isDark ? '#fff' : '#181818',
                     mb: 3,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
@@ -383,7 +305,7 @@ export function Footer() {
                     sx={{
                       display: 'block',
                       mb: 2,
-                      color: '#999',
+                      color: isDark ? '#999' : '#666',
                       textDecoration: 'none',
                       fontSize: '0.95rem',
                       position: 'relative',
@@ -419,7 +341,7 @@ export function Footer() {
                   variant="h6"
                   fontWeight={700}
                   sx={{
-                    color: '#fff',
+                    color: isDark ? '#fff' : '#181818',
                     mb: 3,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
@@ -437,7 +359,7 @@ export function Footer() {
                     sx={{
                       display: 'block',
                       mb: 2,
-                      color: '#999',
+                      color: isDark ? '#999' : '#666',
                       textDecoration: 'none',
                       fontSize: '0.95rem',
                       position: 'relative',
@@ -491,7 +413,7 @@ export function Footer() {
           <Typography
             variant="body2"
             sx={{
-              color: '#666',
+              color: isDark ? '#666' : '#999',
               fontSize: '0.85rem',
               fontWeight: 500,
               letterSpacing: '0.02em',
@@ -505,7 +427,7 @@ export function Footer() {
               href="/privacy"
               variant="body2"
               sx={{
-                color: '#666',
+                color: isDark ? '#666' : '#999',
                 textDecoration: 'none',
                 fontSize: '0.85rem',
                 fontWeight: 500,
@@ -536,7 +458,7 @@ export function Footer() {
               href="/terms"
               variant="body2"
               sx={{
-                color: '#666',
+                color: isDark ? '#666' : '#999',
                 textDecoration: 'none',
                 fontSize: '0.85rem',
                 fontWeight: 500,

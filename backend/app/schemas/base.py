@@ -1,5 +1,6 @@
 """Base schemas with common configurations."""
 from datetime import datetime
+from typing import Any, Optional
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
@@ -18,3 +19,10 @@ class TimestampSchema(BaseSchema):
 class IDSchema(BaseSchema):
     """Schema with UUID id."""
     id: UUID
+
+
+class BaseResponse(BaseSchema):
+    """Standard API response wrapper."""
+    success: bool
+    message: str
+    data: Optional[Any] = None

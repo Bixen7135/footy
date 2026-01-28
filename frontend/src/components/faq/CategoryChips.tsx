@@ -61,14 +61,20 @@ export default function CategoryChips({
               borderRadius: '8px',
               border: 2,
               borderColor: 'secondary.main',
-              bgcolor: isActive ? 'secondary.main' : 'transparent',
+              bgcolor: isActive ? 'secondary.main' : 'background.paper',
               color: isActive ? 'secondary.contrastText' : 'text.primary',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               whiteSpace: 'nowrap',
               '&:hover': {
-                bgcolor: isActive ? 'secondary.main' : 'rgba(158, 255, 0, 0.1)',
+                bgcolor: isActive ? 'secondary.main' : 'rgba(158, 255, 0, 0.2)',
                 transform: 'translateY(-2px)',
+                '@media (prefers-reduced-motion: reduce)': {
+                  transform: 'none',
+                },
+              },
+              '@media (prefers-reduced-motion: reduce)': {
+                transition: 'background-color 0.2s ease, color 0.2s ease',
               },
               '& .MuiChip-label': {
                 px: 1,

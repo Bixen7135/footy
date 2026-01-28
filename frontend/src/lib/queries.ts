@@ -27,6 +27,9 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.categories.all, 'detail', id] as const,
     slug: (slug: string) => [...queryKeys.categories.all, 'slug', slug] as const,
   },
+  statistics: {
+    all: ['statistics'] as const,
+  },
 };
 
 // Product hooks
@@ -131,5 +134,24 @@ export function useCategoryBySlug(slug: string) {
     },
     enabled: !!slug,
     staleTime: 1000 * 60 * 30,
+  });
+}
+
+// Statistics hooks
+export interface Statistics {
+  total_customers: number;
+  total_products: number;
+  total_brands: number;
+  customer_rating: number;
+}
+
+export function useStatistics() {
+  return useQuery({
+    queryKey: queryKeys.statistics.all,
+    queryFn: async () => {
+      const response = await api.get<{ success: boolean; data: Statistics }>('/statistics');
+      return response.data.data;
+    },
+    staleTime: 1000 * 60 * 60, // 1 hour
   });
 }

@@ -74,22 +74,41 @@ export function CartItem({
   return (
     <Box
       component={motion.div}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: isRemoving ? 0.3 : 1, y: 0 }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: isRemoving ? 0.3 : 1, x: 0 }}
+      exit={{ opacity: 0, x: 20, transition: { duration: 0.3 } }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       sx={{
         display: 'flex',
         gap: { xs: 2, md: 3 },
-        p: { xs: 2, md: 3 },
-        mb: 2,
+        p: { xs: 2.5, md: 3.5 },
+        mb: 3,
         bgcolor: 'background.paper',
-        border: '2px solid',
-        borderColor: 'divider',
-        borderRadius: '14px',
-        transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+        border: '3px solid',
+        borderColor: (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+        boxShadow: '6px 6px 0px rgba(0, 0, 0, 0.2)',
+        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
         pointerEvents: isRemoving ? 'none' : 'auto',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '4px',
+          bgcolor: 'secondary.main',
+          transform: 'scaleX(0)',
+          transformOrigin: 'left',
+          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        },
         '&:hover': {
-          borderColor: 'secondary.main',
+          transform: 'translate(-2px, -2px)',
+          boxShadow: '8px 8px 0px rgba(158, 255, 0, 0.4)',
+          '&::before': {
+            transform: 'scaleX(1)',
+          },
         },
       }}
     >
@@ -99,14 +118,17 @@ export function CartItem({
           sx={{
             width: { xs: 100, md: 140 },
             height: { xs: 100, md: 140 },
-            borderRadius: '12px',
             overflow: 'hidden',
-            bgcolor: 'grey.100',
+            bgcolor: (theme) => theme.palette.mode === 'light' ? '#f5f5f5' : '#1a1a1a',
+            border: '2px solid',
+            borderColor: (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
             flexShrink: 0,
             cursor: 'pointer',
-            transition: 'transform 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+            transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            position: 'relative',
             '&:hover': {
-              transform: 'scale(1.05)',
+              transform: 'translate(-2px, -2px)',
+              boxShadow: '4px 4px 0px rgba(158, 255, 0, 0.8)',
             },
           }}
         >
@@ -146,13 +168,18 @@ export function CartItem({
             {item.product?.brand && (
               <Box
                 sx={{
-                  fontSize: '0.7rem',
-                  fontWeight: 800,
+                  display: 'inline-block',
+                  px: 1.5,
+                  py: 0.5,
+                  bgcolor: (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+                  color: (theme) => theme.palette.mode === 'light' ? '#fff' : '#000',
+                  fontSize: '0.65rem',
+                  fontWeight: 900,
                   letterSpacing: '0.15em',
                   textTransform: 'uppercase',
-                  color: 'text.secondary',
-                  mb: 0.5,
-                  fontFamily: 'var(--font-satoshi)',
+                  mb: 1,
+                  border: '2px solid',
+                  borderColor: (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
                 }}
               >
                 {item.product.brand}
@@ -177,7 +204,21 @@ export function CartItem({
             >
               {item.product?.name || 'Product'}
             </Box>
-            <Box sx={{ fontSize: '0.85rem', color: 'text.secondary', fontWeight: 500 }}>
+            <Box
+              sx={{
+                display: 'inline-block',
+                px: 1.5,
+                py: 0.5,
+                bgcolor: 'transparent',
+                border: '2px solid',
+                borderColor: 'divider',
+                fontSize: '0.75rem',
+                color: 'text.primary',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+              }}
+            >
               Size: {item.variant?.size}
             </Box>
           </Box>
@@ -192,26 +233,20 @@ export function CartItem({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 36,
-              height: 36,
-              bgcolor: 'transparent',
-              border: '2px solid',
-              borderColor: 'divider',
-              borderRadius: '10px',
-              color: 'text.secondary',
+              width: 40,
+              height: 40,
+              bgcolor: isRemoving || isUpdating ? 'grey.300' : 'transparent',
+              border: '3px solid',
+              borderColor: isRemoving || isUpdating ? 'grey.400' : (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+              color: isRemoving || isUpdating ? 'grey.500' : 'error.main',
               cursor: isRemoving || isUpdating ? 'not-allowed' : 'pointer',
-              opacity: isRemoving || isUpdating ? 0.5 : 1,
-              transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+              transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
               flexShrink: 0,
               '&:hover': {
-                borderColor: isRemoving || isUpdating ? 'divider' : 'error.main',
-                color: isRemoving || isUpdating ? 'text.secondary' : 'error.main',
-                bgcolor: isRemoving || isUpdating
-                  ? 'transparent'
-                  : (theme) =>
-                      theme.palette.mode === 'light'
-                        ? 'rgba(255, 0, 0, 0.04)'
-                        : 'rgba(255, 0, 0, 0.08)',
+                transform: isRemoving || isUpdating ? 'none' : 'translate(-2px, -2px)',
+                boxShadow: isRemoving || isUpdating ? 'none' : '4px 4px 0px rgba(255, 0, 0, 0.6)',
+                bgcolor: isRemoving || isUpdating ? 'grey.300' : '#ff0000',
+                color: isRemoving || isUpdating ? 'grey.500' : '#fff',
               },
             }}
           >
@@ -230,27 +265,24 @@ export function CartItem({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1.5,
-                px: 2,
-                py: 1,
-                bgcolor: 'transparent',
-                border: '2px solid',
-                borderColor: isQtyOpen ? 'secondary.main' : 'divider',
-                borderRadius: '10px',
-                color: 'text.primary',
-                fontSize: '0.9rem',
-                fontWeight: 600,
+                px: 2.5,
+                py: 1.25,
+                bgcolor: isQtyOpen ? 'secondary.main' : 'transparent',
+                border: '3px solid',
+                borderColor: isQtyOpen ? 'secondary.main' : (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
+                color: isQtyOpen ? '#000' : 'text.primary',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
                 cursor: isUpdating || isRemoving ? 'not-allowed' : 'pointer',
                 opacity: isUpdating || isRemoving ? 0.5 : 1,
-                transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
-                minWidth: 80,
+                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                minWidth: 90,
                 '&:hover': {
-                  borderColor: isUpdating || isRemoving ? 'divider' : 'secondary.main',
-                  bgcolor: isUpdating || isRemoving
-                    ? 'transparent'
-                    : (theme) =>
-                        theme.palette.mode === 'light'
-                          ? 'rgba(158, 255, 0, 0.04)'
-                          : 'rgba(158, 255, 0, 0.08)',
+                  transform: isUpdating || isRemoving ? 'none' : 'translate(-2px, -2px)',
+                  boxShadow: isUpdating || isRemoving ? 'none' : '4px 4px 0px rgba(158, 255, 0, 0.8)',
+                  borderColor: isUpdating || isRemoving ? (theme) => theme.palette.mode === 'light' ? '#000' : '#fff' : 'secondary.main',
                 },
               }}
             >
@@ -261,20 +293,20 @@ export function CartItem({
             {/* Dropdown */}
             {isQtyOpen && (
               <Box
+                component={motion.div}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
                 sx={{
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
                   left: 0,
                   zIndex: 10,
                   bgcolor: 'background.paper',
-                  border: '2px solid',
-                  borderColor: 'divider',
-                  borderRadius: '10px',
+                  border: '3px solid',
+                  borderColor: (theme) => theme.palette.mode === 'light' ? '#000' : '#fff',
                   overflow: 'hidden',
-                  boxShadow: (theme) =>
-                    theme.palette.mode === 'light'
-                      ? '0 8px 24px rgba(0, 0, 0, 0.1)'
-                      : '0 8px 24px rgba(0, 0, 0, 0.3)',
+                  boxShadow: '6px 6px 0px rgba(0, 0, 0, 0.3)',
                 }}
               >
                 {QUANTITY_OPTIONS.map((qty) => (
@@ -286,24 +318,24 @@ export function CartItem({
                       width: '100%',
                       px: 2.5,
                       py: 1.25,
-                      bgcolor: item.quantity === qty
-                        ? (theme) =>
-                            theme.palette.mode === 'light'
-                              ? 'rgba(158, 255, 0, 0.12)'
-                              : 'rgba(158, 255, 0, 0.15)'
-                        : 'transparent',
+                      bgcolor: item.quantity === qty ? 'secondary.main' : 'transparent',
                       border: 'none',
-                      color: 'text.primary',
-                      fontSize: '0.9rem',
-                      fontWeight: item.quantity === qty ? 700 : 500,
+                      borderBottom: '2px solid',
+                      borderBottomColor: 'divider',
+                      color: item.quantity === qty ? '#000' : 'text.primary',
+                      fontSize: '0.85rem',
+                      fontWeight: item.quantity === qty ? 900 : 600,
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.2s',
+                      '&:last-child': {
+                        borderBottom: 'none',
+                      },
                       '&:hover': {
-                        bgcolor: (theme) =>
+                        bgcolor: item.quantity === qty ? 'secondary.main' : (theme) =>
                           theme.palette.mode === 'light'
-                            ? 'rgba(158, 255, 0, 0.08)'
-                            : 'rgba(158, 255, 0, 0.1)',
+                            ? 'rgba(158, 255, 0, 0.2)'
+                            : 'rgba(158, 255, 0, 0.3)',
                       },
                     }}
                   >
@@ -318,16 +350,27 @@ export function CartItem({
           <Box sx={{ textAlign: 'right' }}>
             <Box
               sx={{
-                fontSize: { xs: '1.1rem', md: '1.25rem' },
-                fontWeight: 800,
+                fontFamily: 'var(--font-archivo-black)',
+                fontSize: { xs: '1.3rem', md: '1.6rem' },
+                fontWeight: 400,
                 color: 'text.primary',
-                fontFamily: 'var(--font-satoshi)',
+                lineHeight: 1,
+                letterSpacing: '-0.01em',
               }}
             >
               ${formatPrice(subtotal)}
             </Box>
             {item.quantity > 1 && (
-              <Box sx={{ fontSize: '0.75rem', color: 'text.secondary', mt: 0.5 }}>
+              <Box
+                sx={{
+                  fontSize: '0.7rem',
+                  color: 'text.secondary',
+                  mt: 0.75,
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
                 ${formatPrice(unitPrice)} each
               </Box>
             )}
